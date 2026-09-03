@@ -1,0 +1,402 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Policy Configuration - Payment Recovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#e2e2e2",
+                    "on-primary-fixed": "#00201d",
+                    "on-surface-variant": "#3f4947",
+                    "on-tertiary": "#ffffff",
+                    "inverse-on-surface": "#f0f1f1",
+                    "secondary": "#5b5f61",
+                    "on-tertiary-fixed": "#2a1800",
+                    "on-secondary-container": "#5f6365",
+                    "surface": "#f9f9f9",
+                    "outline-variant": "#bfc8c6",
+                    "primary-container": "#0b4f4a",
+                    "on-error-container": "#93000a",
+                    "tertiary": "#452a00",
+                    "secondary-container": "#dde0e2",
+                    "on-tertiary-container": "#eba746",
+                    "inverse-surface": "#2f3131",
+                    "primary-fixed-dim": "#96d2cb",
+                    "status-neutral": "#94A3B8",
+                    "surface-bright": "#f9f9f9",
+                    "secondary-fixed-dim": "#c4c7c9",
+                    "tertiary-fixed": "#ffddb5",
+                    "primary-fixed": "#b2eee7",
+                    "outline": "#707977",
+                    "panel-bg": "#EEF1F3",
+                    "error-container": "#ffdad6",
+                    "surface-container": "#eeeeee",
+                    "surface-variant": "#e2e2e2",
+                    "on-secondary-fixed-variant": "#434749",
+                    "on-tertiary-fixed-variant": "#643f00",
+                    "on-primary-fixed-variant": "#0c4f4a",
+                    "border-refined": "#D8DEE2",
+                    "on-surface": "#1a1c1c",
+                    "surface-tint": "#2c6862",
+                    "on-primary-container": "#84bfb8",
+                    "surface-dim": "#dadada",
+                    "on-primary": "#ffffff",
+                    "status-error": "#B23A2E",
+                    "on-secondary-fixed": "#181c1e",
+                    "tertiary-fixed-dim": "#ffb958",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "background": "#f9f9f9",
+                    "primary": "#003733",
+                    "surface-container-low": "#f3f3f4",
+                    "tertiary-container": "#633e00",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "status-success": "#4C7A63",
+                    "inverse-primary": "#96d2cb",
+                    "secondary-fixed": "#e0e3e5",
+                    "on-background": "#1a1c1c",
+                    "surface-container-high": "#e8e8e8"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "row-standard": "44px",
+                    "container-padding": "24px",
+                    "gutter": "16px",
+                    "card-internal": "20px",
+                    "row-condensed": "32px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "body-sm": ["IBM Plex Sans"],
+                    "label-caps": ["IBM Plex Sans"],
+                    "data-md": ["IBM Plex Mono"],
+                    "headline-sm": ["Space Grotesk"],
+                    "data-sm": ["IBM Plex Mono"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "headline-lg": ["Space Grotesk"],
+                    "body-md": ["IBM Plex Sans"],
+                    "headline-md": ["Space Grotesk"],
+                    "data-lg": ["IBM Plex Mono"]
+            },
+            "fontSize": {
+                    "body-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                    "label-caps": ["11px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "data-md": ["14px", {"lineHeight": "1", "fontWeight": "500"}],
+                    "headline-sm": ["18px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "data-sm": ["12px", {"lineHeight": "1", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "data-lg": ["16px", {"lineHeight": "1", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { background-color: #FFFFFF; } /* Pure white background per guidance */
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c4c7c9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #707977; }
+        
+        /* Logic Builder connector lines */
+        .logic-line-vertical {
+            position: absolute;
+            left: 23px; /* Align with icon center */
+            top: 40px;
+            bottom: -20px;
+            width: 2px;
+            background-color: #D8DEE2;
+            z-index: 0;
+        }
+        .rule-block { z-index: 1; position: relative; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-on-surface">
+<!-- SideNavBar (from JSON) -->
+<nav class="bg-panel-bg dark:bg-panel-bg flex flex-col h-screen w-64 border-r border-border-refined hidden md:flex flex-shrink-0">
+<!-- Brand Header -->
+<div class="h-row-standard flex items-center px-container-padding border-b border-border-refined shrink-0">
+<span class="font-headline-md text-headline-md tracking-tighter font-bold text-primary dark:text-on-primary-container">RECOVERY OPS</span>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col h-full overflow-y-auto py-unit">
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" data-icon="folder_managed">folder_managed</span>
+<span class="font-label-caps text-label-caps">Cases</span>
+</a>
+<!-- Active State -->
+<a class="flex items-center w-full px-4 py-row-condensed bg-surface-container border-l-4 border-primary text-primary font-bold duration-150" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" data-icon="policy" style="font-variation-settings: 'FILL' 1;">policy</span>
+<span class="font-label-caps text-label-caps">Policy</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" data-icon="history_edu">history_edu</span>
+<span class="font-label-caps text-label-caps">Audit Log</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" data-icon="priority_high">priority_high</span>
+<span class="font-label-caps text-label-caps">Escalation Queue</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" data-icon="api">api</span>
+<span class="font-label-caps text-label-caps">API Management</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-[20px]" data-icon="manage_accounts">manage_accounts</span>
+<span class="font-label-caps text-label-caps">Operator Management</span>
+</a>
+</div>
+<!-- Subtext Footer -->
+<div class="mt-auto px-container-padding py-card-internal border-t border-border-refined">
+<span class="font-data-sm text-data-sm text-secondary">Ledger v2.4.0</span>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden bg-white">
+<!-- TopAppBar (from JSON) -->
+<header class="bg-surface dark:bg-surface h-row-standard w-full border-b border-border-refined flex justify-between items-center px-container-padding h-11 w-full shrink-0">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-secondary">Payment Recovery</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">chevron_right</span>
+<span class="font-label-caps text-label-caps text-primary font-bold">Policy Configuration</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-secondary hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded p-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+</button>
+<button class="text-secondary hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded p-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+</button>
+<div class="h-6 w-6 rounded bg-surface-container-high border border-border-refined flex items-center justify-center overflow-hidden ml-2">
+<img alt="User Profile" class="object-cover w-full h-full" data-alt="A macro photography shot of a textured, abstract dark teal and grey carbon fiber weave, creating a minimal and professional geometric pattern suitable for a high-end enterprise application profile avatar." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGQvBWbj4SEybrBly8YQsrmuuJkPwetQIjl3UyM159chrLcxb_l8ZYYVZ2cU4q1hv3u-ySAeXfebnGWsIZw2hYg3ywum_H1Pfj83NEQS2SpltEMMzy9mNZU3ToayY_cKwh320YdDS-zBrJy37YYelJLxnKtH5MrdKI-wYpLszW25TM3kcw-D8NBbhgn2wHmupPBeio0jsmr8SSOjtU_DAJplQzQNY8CONqEONn79yYiH9u2HDoOGK9">
+</div>
+</div>
+</header>
+<!-- Canvas Body -->
+<div class="flex-1 overflow-y-auto p-container-padding">
+<div class="max-w-7xl mx-auto space-y-gutter">
+<!-- Page Header & Global Actions -->
+<div class="flex justify-between items-end mb-6">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-1">Standard B2B Default Sequence</h1>
+<p class="font-body-md text-body-md text-secondary">ID: <span class="font-data-md text-data-md">POL-8492-B2B</span> · Last updated 2 hours ago by System</p>
+</div>
+<div class="flex gap-2">
+<button class="h-9 px-4 bg-white border border-border-refined rounded text-primary-container font-label-caps text-label-caps hover:bg-surface-container-low transition-colors">Discard Draft</button>
+<button class="h-9 px-4 bg-primary-container border border-primary-container rounded text-white font-label-caps text-label-caps hover:opacity-90 transition-opacity">Deploy Policy</button>
+</div>
+</div>
+<!-- Main Layout Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Left Column: Logic Builder (8 cols) -->
+<div class="col-span-12 xl:col-span-8 flex flex-col gap-gutter">
+<!-- Trigger Definition -->
+<div class="bg-white border border-border-refined rounded p-card-internal">
+<h2 class="font-label-caps text-label-caps text-secondary mb-4 uppercase tracking-wider border-b border-border-refined pb-2">Entry Trigger</h2>
+<div class="flex items-center gap-4 bg-panel-bg p-4 rounded border border-border-refined">
+<div class="h-10 w-10 rounded bg-white border border-border-refined flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary-container">play_arrow</span>
+</div>
+<div class="flex-1">
+<div class="font-body-sm text-body-sm text-secondary mb-1">Condition</div>
+<div class="flex items-center gap-2">
+<select class="h-8 border-border-refined rounded text-on-surface font-data-md text-data-md bg-white py-0 pl-2 pr-8 focus:ring-1 focus:ring-primary-container focus:border-primary-container">
+<option>Invoice Status</option>
+</select>
+<span class="font-data-sm text-data-sm text-secondary">==</span>
+<select class="h-8 border-border-refined rounded text-on-surface font-data-md text-data-md bg-white py-0 pl-2 pr-8 focus:ring-1 focus:ring-primary-container focus:border-primary-container">
+<option>OVERDUE</option>
+</select>
+</div>
+</div>
+<div class="flex-1">
+<div class="font-body-sm text-body-sm text-secondary mb-1">Time Offset</div>
+<div class="flex items-center gap-2">
+<span class="font-data-sm text-data-sm text-secondary">+</span>
+<input class="h-8 w-16 border-border-refined rounded text-on-surface font-data-md text-data-md bg-white py-0 px-2 text-right focus:ring-1 focus:ring-primary-container focus:border-primary-container" type="number" value="15">
+<span class="font-body-sm text-body-sm text-secondary">Days</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sequence Builder -->
+<div class="bg-white border border-border-refined rounded p-card-internal relative">
+<h2 class="font-label-caps text-label-caps text-secondary mb-6 uppercase tracking-wider border-b border-border-refined pb-2">Execution Sequence</h2>
+<!-- Node 1 -->
+<div class="rule-block relative mb-8 pl-12">
+<div class="logic-line-vertical"></div>
+<div class="absolute left-0 top-0 h-8 w-8 rounded-full bg-surface-container-high border-2 border-white flex items-center justify-center z-10 shadow-sm">
+<span class="font-data-sm text-data-sm font-bold text-secondary">01</span>
+</div>
+<div class="bg-white border border-border-refined rounded overflow-hidden">
+<div class="bg-panel-bg px-4 py-2 border-b border-border-refined flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">mail</span>
+<span class="font-label-caps text-label-caps text-on-surface">Action: Send Comm</span>
+</div>
+<button class="text-secondary hover:text-primary"><span class="material-symbols-outlined text-[16px]">more_horiz</span></button>
+</div>
+<div class="p-4 grid grid-cols-2 gap-4">
+<div>
+<label class="block font-label-caps text-label-caps text-secondary mb-1">Template</label>
+<select class="w-full h-8 border-border-refined rounded text-on-surface font-data-md text-data-md bg-white py-0 pl-2 pr-8">
+<option>TPL-REMINDER-01-SOFT</option>
+</select>
+</div>
+<div>
+<label class="block font-label-caps text-label-caps text-secondary mb-1">Channel</label>
+<div class="flex gap-2">
+<label class="flex items-center gap-1"><input checked="" class="rounded border-border-refined text-primary-container focus:ring-primary-container" type="checkbox"><span class="font-body-sm text-body-sm">Email</span></label>
+<label class="flex items-center gap-1"><input class="rounded border-border-refined text-primary-container focus:ring-primary-container" type="checkbox"><span class="font-body-sm text-body-sm">SMS</span></label>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Node 2 (Condition) -->
+<div class="rule-block relative mb-8 pl-12">
+<div class="logic-line-vertical"></div>
+<div class="absolute left-0 top-0 h-8 w-8 rounded bg-surface-container-high border-2 border-white flex items-center justify-center z-10 shadow-sm transform rotate-45">
+<span class="material-symbols-outlined text-[14px] text-secondary transform -rotate-45">call_split</span>
+</div>
+<div class="bg-white border border-border-refined rounded overflow-hidden border-l-4 border-l-status-neutral">
+<div class="bg-panel-bg px-4 py-2 border-b border-border-refined flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-on-surface">Evaluate: Payment Received?</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-status-success text-white font-body-sm text-body-sm text-[10px]">TRUE</span>
+<span class="font-data-md text-data-md text-secondary">→ Halt Sequence (Success)</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-status-error text-white font-body-sm text-body-sm text-[10px]">FALSE</span>
+<span class="font-data-md text-data-md text-secondary">→ Continue after delay</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Node 3 -->
+<div class="rule-block relative mb-8 pl-12">
+<div class="absolute left-0 top-0 h-8 w-8 rounded-full bg-surface-container-high border-2 border-white flex items-center justify-center z-10 shadow-sm">
+<span class="font-data-sm text-data-sm font-bold text-secondary">02</span>
+</div>
+<div class="bg-white border border-border-refined rounded overflow-hidden">
+<div class="bg-panel-bg px-4 py-2 border-b border-border-refined flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-status-error">gavel</span>
+<span class="font-label-caps text-label-caps text-on-surface">Action: Escalate Tier</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-4">
+<div>
+<label class="block font-label-caps text-label-caps text-secondary mb-1">New Tier</label>
+<select class="h-8 border-border-refined rounded text-on-surface font-data-md text-data-md bg-white py-0 pl-2 pr-8">
+<option>TIER_2_COLLECTIONS</option>
+</select>
+</div>
+<div>
+<label class="block font-label-caps text-label-caps text-secondary mb-1">Assignee</label>
+<select class="h-8 border-border-refined rounded text-on-surface font-data-md text-data-md bg-white py-0 pl-2 pr-8">
+<option>Auto-Round-Robin</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Node Button -->
+<div class="pl-12">
+<button class="flex items-center justify-center w-full h-10 border border-dashed border-border-refined rounded text-secondary hover:text-primary hover:border-primary hover:bg-panel-bg transition-colors">
+<span class="material-symbols-outlined text-[20px] mr-2">add</span>
+<span class="font-label-caps text-label-caps">Add Logic Node</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Settings & Thresholds (4 cols) -->
+<div class="col-span-12 xl:col-span-4 flex flex-col gap-gutter">
+<!-- Policy Metadata -->
+<div class="bg-white border border-border-refined rounded p-card-internal">
+<h2 class="font-label-caps text-label-caps text-secondary mb-4 uppercase tracking-wider border-b border-border-refined pb-2">Policy Metadata</h2>
+<div class="space-y-4">
+<div>
+<label class="block font-label-caps text-label-caps text-secondary mb-1">Policy Name</label>
+<input class="w-full h-8 border-border-refined rounded text-on-surface font-body-sm text-body-sm bg-white py-0 px-2 focus:ring-1 focus:ring-primary-container focus:border-primary-container" type="text" value="Standard B2B Default Sequence">
+</div>
+<div>
+<label class="block font-label-caps text-label-caps text-secondary mb-1">Description</label>
+<textarea class="w-full border-border-refined rounded text-on-surface font-body-sm text-body-sm bg-white p-2 focus:ring-1 focus:ring-primary-container focus:border-primary-container" rows="3">Standard 30-day escalation path for enterprise clients with standard SLA.</textarea>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block font-label-caps text-label-caps text-secondary mb-1">Priority</label>
+<select class="w-full h-8 border-border-refined rounded text-on-surface font-data-md text-data-md bg-white py-0 pl-2 pr-8">
+<option>MEDIUM</option>
+</select>
+</div>
+<div>
+<label class="block font-label-caps text-label-caps text-secondary mb-1">Status</label>
+<span class="inline-flex items-center justify-center px-2 py-1 rounded bg-surface-container-high border border-border-refined font-label-caps text-label-caps text-secondary w-full">DRAFT</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Financial Thresholds -->
+<div class="bg-white border border-border-refined rounded p-card-internal">
+<h2 class="font-label-caps text-label-caps text-secondary mb-4 uppercase tracking-wider border-b border-border-refined pb-2">Threshold Limits</h2>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between items-end mb-2">
+<label class="font-label-caps text-label-caps text-on-surface">Min Invoice Amount</label>
+<span class="font-data-md text-data-md text-primary">$5,000.00</span>
+</div>
+<input class="w-full h-1 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary-container" max="10000" min="0" type="range" value="5000">
+</div>
+<div>
+<div class="flex justify-between items-end mb-2">
+<label class="font-label-caps text-label-caps text-on-surface">Max Grace Period (Days)</label>
+<span class="font-data-md text-data-md text-primary">15</span>
+</div>
+<input class="w-full h-1 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary-container" max="30" min="0" type="range" value="15">
+</div>
+<div class="bg-panel-bg p-3 rounded border border-border-refined">
+<label class="flex items-start gap-2 cursor-pointer">
+<input checked="" class="mt-0.5 rounded border-border-refined text-primary-container focus:ring-primary-container" type="checkbox">
+<div>
+<span class="block font-label-caps text-label-caps text-on-surface">Auto-Pause on Dispute</span>
+<span class="block font-body-sm text-body-sm text-secondary mt-1">Halt sequence execution immediately if a client files a formal dispute via portal.</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

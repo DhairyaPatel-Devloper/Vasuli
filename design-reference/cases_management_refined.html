@@ -1,0 +1,340 @@
+<!DOCTYPE html><html class="h-full" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Cases Management - Payment Recovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e2e2e2",
+                        "on-primary-fixed": "#00201d",
+                        "on-surface-variant": "#3f4947",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f1",
+                        "secondary": "#5b5f61",
+                        "on-tertiary-fixed": "#2a1800",
+                        "on-secondary-container": "#5f6365",
+                        "surface": "#f9f9f9",
+                        "outline-variant": "#bfc8c6",
+                        "primary-container": "#0b4f4a",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#452a00",
+                        "secondary-container": "#dde0e2",
+                        "on-tertiary-container": "#eba746",
+                        "inverse-surface": "#2f3131",
+                        "primary-fixed-dim": "#96d2cb",
+                        "status-neutral": "#94A3B8",
+                        "surface-bright": "#f9f9f9",
+                        "secondary-fixed-dim": "#c4c7c9",
+                        "tertiary-fixed": "#ffddb5",
+                        "primary-fixed": "#b2eee7",
+                        "outline": "#707977",
+                        "panel-bg": "#EEF1F3",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#eeeeee",
+                        "surface-variant": "#e2e2e2",
+                        "on-secondary-fixed-variant": "#434749",
+                        "on-tertiary-fixed-variant": "#643f00",
+                        "on-primary-fixed-variant": "#0c4f4a",
+                        "border-refined": "#D8DEE2",
+                        "on-surface": "#1a1c1c",
+                        "surface-tint": "#2c6862",
+                        "on-primary-container": "#84bfb8",
+                        "surface-dim": "#dadada",
+                        "on-primary": "#ffffff",
+                        "status-error": "#B23A2E",
+                        "on-secondary-fixed": "#181c1e",
+                        "tertiary-fixed-dim": "#ffb958",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "background": "#f9f9f9",
+                        "primary": "#003733",
+                        "surface-container-low": "#f3f3f4",
+                        "tertiary-container": "#633e00",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "status-success": "#4C7A63",
+                        "inverse-primary": "#96d2cb",
+                        "secondary-fixed": "#e0e3e5",
+                        "on-background": "#1a1c1c",
+                        "surface-container-high": "#e8e8e8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "row-standard": "44px",
+                        "container-padding": "24px",
+                        "gutter": "16px",
+                        "card-internal": "20px",
+                        "row-condensed": "32px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["IBM Plex Sans"],
+                        "label-caps": ["IBM Plex Sans"],
+                        "data-md": ["IBM Plex Mono"],
+                        "headline-sm": ["Space Grotesk"],
+                        "data-sm": ["IBM Plex Mono"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "headline-lg": ["Space Grotesk"],
+                        "body-md": ["IBM Plex Sans"],
+                        "headline-md": ["Space Grotesk"],
+                        "data-lg": ["IBM Plex Mono"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "label-caps": ["11px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "data-md": ["14px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "headline-sm": ["18px", { "lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "data-sm": ["12px", { "lineHeight": "1", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "data-lg": ["16px", { "lineHeight": "1", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for data tables */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #EEF1F3; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D8DEE2; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bfc8c6; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md h-full flex antialiased">
+<!-- SideNavBar -->
+<nav class="hidden md:flex bg-panel-bg h-screen w-64 border-r border-border-refined flex-col overflow-y-auto">
+<div class="p-container-padding pb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-8 h-8 rounded bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-weight="fill">account_balance</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md tracking-tighter font-bold text-primary">RECOVERY OPS</h1>
+<p class="font-label-caps text-label-caps text-secondary mt-1">Ledger v2.4.0</p>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors gap-3" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed bg-surface-container border-l-4 border-primary text-primary font-bold duration-150 gap-3" href="#">
+<span class="material-symbols-outlined">folder_managed</span>
+<span class="font-label-caps text-label-caps">Cases</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors gap-3" href="#">
+<span class="material-symbols-outlined">policy</span>
+<span class="font-label-caps text-label-caps">Policy</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors gap-3" href="#">
+<span class="material-symbols-outlined">history_edu</span>
+<span class="font-label-caps text-label-caps">Audit Log</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors gap-3" href="#">
+<span class="material-symbols-outlined">priority_high</span>
+<span class="font-label-caps text-label-caps">Escalation Queue</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors gap-3" href="#">
+<span class="material-symbols-outlined">api</span>
+<span class="font-label-caps text-label-caps">API Management</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-low transition-colors gap-3" href="#">
+<span class="material-symbols-outlined">manage_accounts</span>
+<span class="font-label-caps text-label-caps">Operator Management</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden bg-background">
+<!-- TopAppBar -->
+<header class="bg-surface h-row-standard w-full border-b border-border-refined flex justify-between items-center px-container-padding flex-shrink-0">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-secondary">Payment Recovery</span>
+<span class="text-secondary mx-2">/</span>
+<span class="font-label-caps text-label-caps text-primary font-bold">Breadcrumbs / Current Case</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-secondary hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded p-1">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-secondary hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded p-1">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-border-refined">
+<img class="w-full h-full object-cover" data-alt="A small, professional headshot of an executive in a modern office setting. The lighting is bright and even, typical of a corporate headshot, with a neutral white background. The image is crisp and clear, conveying authority and approachability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1Z5CD7pOEM4OdoqkPIUAsyv_dhI_3KtTMe-r9aJ__b4gFTsvYQcjcFst-IrgZSAcT-3Dwe8_-_7VBAqcOIfSxKQSpqXtJwFOSPt23zW2HgNd1eBGOOJ2XZmerD8MpMztVCE0-qQAp05Di8qGazI7Xne0q0Yu-J_B05AxwapMtMdSI8pw1M_AYpMeE0g02US92j0UcGMM0f3m1By74K6MTtuOl2dfqwOT6fWc2lkfSGoQY8bDXaM_E">
+</div>
+</div>
+</header>
+<!-- Canvas Content -->
+<div class="flex-1 overflow-y-auto p-container-padding">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Active Cases</h2>
+<p class="font-body-md text-body-md text-secondary">Manage and track high-priority recovery operations.</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface text-primary-container border border-border-refined font-label-caps text-label-caps px-4 py-2 rounded hover:bg-surface-container-low transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        FILTER
+                    </button>
+<button class="bg-primary-container text-on-primary font-label-caps text-label-caps px-4 py-2 rounded hover:bg-primary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+                        NEW CASE
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout for Metrics & Table -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Metrics Card 1 -->
+<div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-border-refined rounded-lg p-card-internal">
+<p class="font-label-caps text-label-caps text-secondary mb-2">TOTAL EXPOSURE</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">$14.2M</span>
+<span class="font-data-sm text-data-sm text-status-error flex items-center"><span class="material-symbols-outlined text-xs">arrow_upward</span> 2.4%</span>
+</div>
+</div>
+<!-- Metrics Card 2 -->
+<div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-border-refined rounded-lg p-card-internal">
+<p class="font-label-caps text-label-caps text-secondary mb-2">RECOVERY RATE</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">68.5%</span>
+<span class="font-data-sm text-data-sm text-status-success flex items-center"><span class="material-symbols-outlined text-xs">arrow_downward</span> 0.8%</span>
+</div>
+</div>
+<!-- Metrics Card 3 -->
+<div class="col-span-12 md:col-span-4 bg-surface-container-lowest border border-border-refined rounded-lg p-card-internal">
+<p class="font-label-caps text-label-caps text-secondary mb-2">CRITICAL ESCALATIONS</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">12</span>
+<span class="font-body-sm text-body-sm text-secondary ml-1">Action Req.</span>
+</div>
+</div>
+<!-- Data Table Card -->
+<div class="col-span-12 bg-surface-container-lowest border border-border-refined rounded-lg overflow-hidden flex flex-col">
+<div class="px-card-internal py-4 border-b border-border-refined flex justify-between items-center bg-surface">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Case Registry</h3>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary text-sm">search</span>
+<input class="w-full bg-surface-container border border-border-refined rounded pl-9 pr-3 py-1.5 font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all" placeholder="Search cases..." type="text">
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-panel-bg border-b border-border-refined">
+<th class="px-4 py-3 font-label-caps text-label-caps text-secondary w-32">CASE ID</th>
+<th class="px-4 py-3 font-label-caps text-label-caps text-secondary">ENTITY</th>
+<th class="px-4 py-3 font-label-caps text-label-caps text-secondary text-right w-40">EXPOSURE</th>
+<th class="px-4 py-3 font-label-caps text-label-caps text-secondary w-32">STATUS</th>
+<th class="px-4 py-3 font-label-caps text-label-caps text-secondary w-32">LAST ACTION</th>
+<th class="px-4 py-3 font-label-caps text-label-caps text-secondary text-center w-16"></th>
+</tr>
+</thead>
+<tbody class="font-body-md text-on-surface divide-y divide-border-refined">
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-row-condensed font-data-md text-data-md">CAS-8992</td>
+<td class="px-4 py-row-condensed font-body-md">Global Logistics Corp</td>
+<td class="px-4 py-row-condensed font-data-md text-data-md text-right">$4,250,000.00</td>
+<td class="px-4 py-row-condensed">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-status-error/10 text-status-error">CRITICAL</span>
+</td>
+<td class="px-4 py-row-condensed font-body-sm text-secondary">2 hrs ago</td>
+<td class="px-4 py-row-condensed text-center">
+<button class="text-secondary hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-row-condensed font-data-md text-data-md">CAS-8991</td>
+<td class="px-4 py-row-condensed font-body-md">Apex Manufacturing</td>
+<td class="px-4 py-row-condensed font-data-md text-data-md text-right">$1,120,500.00</td>
+<td class="px-4 py-row-condensed">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-on-tertiary-container/10 text-on-tertiary-container">IN PROGRESS</span>
+</td>
+<td class="px-4 py-row-condensed font-body-sm text-secondary">1 day ago</td>
+<td class="px-4 py-row-condensed text-center">
+<button class="text-secondary hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-row-condensed font-data-md text-data-md">CAS-8985</td>
+<td class="px-4 py-row-condensed font-body-md">Nordic Retail Group</td>
+<td class="px-4 py-row-condensed font-data-md text-data-md text-right">$850,000.00</td>
+<td class="px-4 py-row-condensed">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-status-success/10 text-status-success">RECOVERED</span>
+</td>
+<td class="px-4 py-row-condensed font-body-sm text-secondary">3 days ago</td>
+<td class="px-4 py-row-condensed text-center">
+<button class="text-secondary hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-4 py-row-condensed font-data-md text-data-md">CAS-8980</td>
+<td class="px-4 py-row-condensed font-body-md">TechNova Solutions</td>
+<td class="px-4 py-row-condensed font-data-md text-data-md text-right">$2,100,000.00</td>
+<td class="px-4 py-row-condensed">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-status-neutral/20 text-on-surface-variant">PENDING REVIEW</span>
+</td>
+<td class="px-4 py-row-condensed font-body-sm text-secondary">4 days ago</td>
+<td class="px-4 py-row-condensed text-center">
+<button class="text-secondary hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-card-internal py-3 border-t border-border-refined bg-surface flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-secondary">Showing 1 to 4 of 124 entries</span>
+<div class="flex gap-1">
+<button class="px-2 py-1 border border-border-refined rounded text-secondary hover:bg-surface-container-low disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="px-2 py-1 border border-border-refined rounded text-secondary hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

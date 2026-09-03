@@ -1,0 +1,358 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Escalation Queue - Payment Recovery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e2e2e2",
+                        "on-primary-fixed": "#00201d",
+                        "on-surface-variant": "#3f4947",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#f0f1f1",
+                        "secondary": "#5b5f61",
+                        "on-tertiary-fixed": "#2a1800",
+                        "on-secondary-container": "#5f6365",
+                        "surface": "#f9f9f9",
+                        "outline-variant": "#bfc8c6",
+                        "primary-container": "#0b4f4a",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#452a00",
+                        "secondary-container": "#dde0e2",
+                        "on-tertiary-container": "#eba746",
+                        "inverse-surface": "#2f3131",
+                        "primary-fixed-dim": "#96d2cb",
+                        "status-neutral": "#94A3B8",
+                        "surface-bright": "#f9f9f9",
+                        "secondary-fixed-dim": "#c4c7c9",
+                        "tertiary-fixed": "#ffddb5",
+                        "primary-fixed": "#b2eee7",
+                        "outline": "#707977",
+                        "panel-bg": "#EEF1F3",
+                        "error-container": "#ffdad6",
+                        "surface-container": "#eeeeee",
+                        "surface-variant": "#e2e2e2",
+                        "on-secondary-fixed-variant": "#434749",
+                        "on-tertiary-fixed-variant": "#643f00",
+                        "on-primary-fixed-variant": "#0c4f4a",
+                        "border-refined": "#D8DEE2",
+                        "on-surface": "#1a1c1c",
+                        "surface-tint": "#2c6862",
+                        "on-primary-container": "#84bfb8",
+                        "surface-dim": "#dadada",
+                        "on-primary": "#ffffff",
+                        "status-error": "#B23A2E",
+                        "on-secondary-fixed": "#181c1e",
+                        "tertiary-fixed-dim": "#ffb958",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "background": "#f9f9f9",
+                        "primary": "#003733",
+                        "surface-container-low": "#f3f3f4",
+                        "tertiary-container": "#633e00",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "status-success": "#4C7A63",
+                        "inverse-primary": "#96d2cb",
+                        "secondary-fixed": "#e0e3e5",
+                        "on-background": "#1a1c1c",
+                        "surface-container-high": "#e8e8e8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "row-standard": "44px",
+                        "container-padding": "24px",
+                        "gutter": "16px",
+                        "card-internal": "20px",
+                        "row-condensed": "32px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["IBM Plex Sans"],
+                        "label-caps": ["IBM Plex Sans"],
+                        "data-md": ["IBM Plex Mono"],
+                        "headline-sm": ["Space Grotesk"],
+                        "data-sm": ["IBM Plex Mono"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "headline-lg": ["Space Grotesk"],
+                        "body-md": ["IBM Plex Sans"],
+                        "headline-md": ["Space Grotesk"],
+                        "data-lg": ["IBM Plex Mono"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "label-caps": ["11px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "data-md": ["14px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "headline-sm": ["18px", { "lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "data-sm": ["12px", { "lineHeight": "1", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "data-lg": ["16px", { "lineHeight": "1", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for dense data tables */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D8DEE2;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bfc8c6;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md h-screen w-full flex overflow-hidden antialiased">
+<!-- SideNavBar -->
+<nav class="bg-panel-bg border-r border-border-refined h-screen w-64 flex flex-col overflow-y-auto flex-shrink-0">
+<div class="p-container-padding border-b border-border-refined mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-on-primary font-headline-sm">R</div>
+<div>
+<div class="font-headline-sm text-headline-sm tracking-tighter font-bold text-primary">RECOVERY OPS</div>
+<div class="font-label-caps text-label-caps text-secondary mt-1">Ledger v2.4.0</div>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col">
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-secondary">dashboard</span>
+<span class="font-label-caps text-label-caps uppercase">Dashboard</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-secondary">folder_managed</span>
+<span class="font-label-caps text-label-caps uppercase">Cases</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-secondary">policy</span>
+<span class="font-label-caps text-label-caps uppercase">Policy</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-secondary">history_edu</span>
+<span class="font-label-caps text-label-caps uppercase">Audit Log</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed bg-surface-container border-l-4 border-primary text-primary font-bold hover:bg-surface-container-high transition-all duration-150" href="#">
+<span class="material-symbols-outlined mr-3 text-primary" data-weight="fill">priority_high</span>
+<span class="font-label-caps text-label-caps uppercase">Escalation Queue</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-secondary">api</span>
+<span class="font-label-caps text-label-caps uppercase">API Management</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3 text-secondary">manage_accounts</span>
+<span class="font-label-caps text-label-caps uppercase">Operator Management</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-full overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-border-refined h-11 w-full flex justify-between items-center px-container-padding flex-shrink-0">
+<div class="flex items-center gap-2 text-secondary font-label-caps text-label-caps">
+<span class="text-primary font-bold hover:text-primary transition-colors cursor-pointer">Breadcrumbs</span>
+<span>/</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Current Case</span>
+</div>
+<div class="flex items-center gap-4 text-secondary">
+<button class="hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded p-1">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="hover:text-primary transition-colors focus:outline-none focus:ring-1 focus:ring-primary rounded p-1">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<div class="w-7 h-7 rounded-full bg-secondary-container border border-border-refined overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A macro photography shot of an abstract geometric pattern serving as an avatar. The image features sharp, clean edges, layered matte textures in stark white and deep teal tones, adhering to a strict industrial corporate aesthetic. High resolution, bright even studio lighting, highly detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeGNqSxLW5CVBsk0Vu2QTls_gI6M85UvIvErcHipsplHLY35QoX_7iTynl9UysTe3ceZ0WEU5lltNrGwVgBp3Zc1H1PjW_NBv8YZKbAZuzMDEo9SseXv-Jc2wqWiC__8WjKYZTSdH9YvUMNE4L3BakNBUEHoDgJWz7TWuz_xw07PZPjdY6RsSd5mIpe5OJVTuA1aLorTTH1a83aAAGjz5-iT5KjpKnzrlb5DEpQ6GNroH4judH4o5b">
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 overflow-y-auto p-container-padding bg-background">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-gutter">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Escalation Queue</h1>
+<p class="font-body-md text-body-md text-secondary mt-1">Requires immediate operator intervention. SLAs are actively breaching.</p>
+</div>
+<div class="flex gap-3">
+<div class="flex items-center gap-2 bg-error-container/20 px-3 py-2 border border-status-error/30 rounded">
+<span class="material-symbols-outlined text-status-error text-[18px]">warning</span>
+<span class="font-data-md text-data-md text-status-error">12 Critical</span>
+</div>
+</div>
+</div>
+<!-- Urgent Bento Grid -->
+<div class="grid grid-cols-12 gap-gutter mb-gutter">
+<!-- Breach Metrics -->
+<div class="col-span-12 lg:col-span-4 bg-on-tertiary border border-border-refined rounded p-card-internal flex flex-col">
+<div class="font-label-caps text-label-caps text-secondary uppercase mb-4 tracking-wider border-b border-border-refined pb-2">Queue Health Status</div>
+<div class="grid grid-cols-2 gap-4 flex-1">
+<div>
+<div class="font-label-caps text-label-caps text-secondary mb-1">AVG WAIT TIME</div>
+<div class="font-data-lg text-data-lg text-on-surface">45m 12s</div>
+</div>
+<div>
+<div class="font-label-caps text-label-caps text-secondary mb-1">OLDEST TICKET</div>
+<div class="font-data-lg text-data-lg text-status-error">3h 42m</div>
+</div>
+<div class="col-span-2 mt-2">
+<div class="font-label-caps text-label-caps text-secondary mb-2">SLA COMPLIANCE</div>
+<div class="h-2 w-full bg-surface-container rounded overflow-hidden flex">
+<div class="bg-status-success h-full w-[40%]"></div>
+<div class="bg-tertiary-fixed-dim h-full w-[35%]"></div>
+<div class="bg-status-error h-full w-[25%]"></div>
+</div>
+<div class="flex justify-between mt-1 font-data-sm text-data-sm text-secondary">
+<span>40% Safe</span>
+<span>25% Breached</span>
+</div>
+</div>
+</div>
+</div>
+<!-- High Priority Takeover -->
+<div class="col-span-12 lg:col-span-8 bg-on-tertiary border border-status-error/50 rounded p-card-internal relative overflow-hidden flex flex-col justify-between">
+<div class="absolute top-0 right-0 w-32 h-32 bg-error-container rounded-bl-full opacity-20 -mr-10 -mt-10"></div>
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="bg-status-error text-on-error font-label-caps text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">Priority 1 / Breached</span>
+<span class="font-data-sm text-data-sm text-secondary">#ESC-8992-FX</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-2">Wire Transfer Reversal Failure - AML Hold</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">Automated clearing house (ACH) clawback rejected by receiving institution due to conflicting AML flags. Manual override and inter-bank communication required immediately to prevent capital loss.</p>
+</div>
+<div class="flex items-end justify-between mt-6">
+<div>
+<div class="font-label-caps text-label-caps text-secondary mb-1">SLA TIMER EXPIRED</div>
+<div class="font-data-lg text-data-lg text-status-error flex items-center gap-2">
+                                -00:45:12 <span class="material-symbols-outlined text-[16px] animate-pulse">timer</span>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface border border-border-refined text-primary-container font-data-md text-data-md px-4 py-2 rounded hover:bg-surface-container-low transition-colors">View Details</button>
+<button class="bg-status-error text-on-error border border-status-error font-data-md text-data-md px-4 py-2 rounded hover:bg-status-error/90 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">gavel</span> Take Action
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Queue Table -->
+<div class="bg-on-tertiary border border-border-refined rounded flex flex-col h-[500px]">
+<div class="p-4 border-b border-border-refined flex justify-between items-center bg-surface">
+<h3 class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Active Escalations (42)</h3>
+<div class="flex gap-2">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">filter_list</span></button>
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">sort</span></button>
+</div>
+</div>
+<div class="flex-1 overflow-auto">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-panel-bg z-10 shadow-sm border-b border-border-refined">
+<tr>
+<th class="font-label-caps text-label-caps text-secondary uppercase p-4 font-normal">Ticket ID</th>
+<th class="font-label-caps text-label-caps text-secondary uppercase p-4 font-normal">Status</th>
+<th class="font-label-caps text-label-caps text-secondary uppercase p-4 font-normal">Subject</th>
+<th class="font-label-caps text-label-caps text-secondary uppercase p-4 font-normal">Origin</th>
+<th class="font-label-caps text-label-caps text-secondary uppercase p-4 font-normal text-right">Time to SLA</th>
+<th class="font-label-caps text-label-caps text-secondary uppercase p-4 font-normal text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-refined font-body-sm text-body-sm">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest transition-colors bg-error-container/5">
+<td class="p-4 font-data-sm text-data-sm text-on-surface whitespace-nowrap">#ESC-8991</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-status-error/10 text-status-error border border-status-error/20">Breached</span>
+</td>
+<td class="p-4 text-on-surface font-medium max-w-xs truncate">Chargeback dispute missed filing window</td>
+<td class="p-4 text-secondary">Merchant Ops</td>
+<td class="p-4 font-data-sm text-data-sm text-status-error text-right whitespace-nowrap">-00:12:05</td>
+<td class="p-4 text-right">
+<button class="text-primary hover:text-primary-container font-data-sm text-data-sm border border-border-refined px-3 py-1 rounded bg-surface">Review</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="p-4 font-data-sm text-data-sm text-on-surface whitespace-nowrap">#ESC-8995</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant border border-tertiary-fixed-dim/30">At Risk</span>
+</td>
+<td class="p-4 text-on-surface max-w-xs truncate">Suspicious multi-currency conversion routing</td>
+<td class="p-4 text-secondary">Fraud Engine</td>
+<td class="p-4 font-data-sm text-data-sm text-tertiary text-right whitespace-nowrap">00:05:42</td>
+<td class="p-4 text-right">
+<button class="text-primary hover:text-primary-container font-data-sm text-data-sm border border-border-refined px-3 py-1 rounded bg-surface">Review</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="p-4 font-data-sm text-data-sm text-on-surface whitespace-nowrap">#ESC-8998</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant border border-tertiary-fixed-dim/30">At Risk</span>
+</td>
+<td class="p-4 text-on-surface max-w-xs truncate">KYC documentation mismatch on tier 3 account</td>
+<td class="p-4 text-secondary">Compliance</td>
+<td class="p-4 font-data-sm text-data-sm text-tertiary text-right whitespace-nowrap">00:14:20</td>
+<td class="p-4 text-right">
+<button class="text-primary hover:text-primary-container font-data-sm text-data-sm border border-border-refined px-3 py-1 rounded bg-surface">Review</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="p-4 font-data-sm text-data-sm text-on-surface whitespace-nowrap">#ESC-9002</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container-highest text-secondary border border-border-refined">Pending</span>
+</td>
+<td class="p-4 text-on-surface max-w-xs truncate">Ledger sync failure - Node 4 timeout</td>
+<td class="p-4 text-secondary">System Auth</td>
+<td class="p-4 font-data-sm text-data-sm text-on-surface text-right whitespace-nowrap">01:45:00</td>
+<td class="p-4 text-right">
+<button class="text-primary hover:text-primary-container font-data-sm text-data-sm border border-border-refined px-3 py-1 rounded bg-surface">Review</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="p-4 font-data-sm text-data-sm text-on-surface whitespace-nowrap">#ESC-9005</td>
+<td class="p-4">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container-highest text-secondary border border-border-refined">Pending</span>
+</td>
+<td class="p-4 text-on-surface max-w-xs truncate">Unrecognized API signature payload</td>
+<td class="p-4 text-secondary">Gateway Ops</td>
+<td class="p-4 font-data-sm text-data-sm text-on-surface text-right whitespace-nowrap">02:10:15</td>
+<td class="p-4 text-right">
+<button class="text-primary hover:text-primary-container font-data-sm text-data-sm border border-border-refined px-3 py-1 rounded bg-surface">Review</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</body></html>

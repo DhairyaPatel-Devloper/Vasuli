@@ -1,0 +1,8 @@
+main = ".open-next/worker.js"
+name = "payment-recovery-engine"
+compatibility_date = "2026-09-03"
+compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"

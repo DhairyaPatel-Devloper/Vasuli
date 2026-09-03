@@ -1,0 +1,28 @@
+# dependencies
+/node_modules
+/.pnpm-store
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# open-next
+/.open-next/
+
+# production
+/build
+
+# local env files
+.env*.local
+.env.local
+.env
+
+# vercel
+/.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts

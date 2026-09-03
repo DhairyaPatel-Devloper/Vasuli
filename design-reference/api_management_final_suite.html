@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>API Management - Precision Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "outline": "#707977",
+                "surface-tint": "#2c6862",
+                "on-background": "#1a1c1c",
+                "on-secondary-container": "#5f6365",
+                "tertiary-container": "#633e00",
+                "surface-dim": "#dadada",
+                "on-primary-container": "#84bfb8",
+                "inverse-on-surface": "#f0f1f1",
+                "border-refined": "#D8DEE2",
+                "panel-bg": "#EEF1F3",
+                "primary-container": "#0b4f4a",
+                "tertiary-fixed-dim": "#ffb958",
+                "surface-container": "#eeeeee",
+                "outline-variant": "#bfc8c6",
+                "secondary-container": "#dde0e2",
+                "on-surface-variant": "#3f4947",
+                "surface-variant": "#e2e2e2",
+                "secondary": "#5b5f61",
+                "primary-fixed": "#b2eee7",
+                "status-neutral": "#94A3B8",
+                "on-tertiary-fixed-variant": "#643f00",
+                "status-success": "#4C7A63",
+                "on-tertiary-container": "#eba746",
+                "tertiary-fixed": "#ffddb5",
+                "inverse-surface": "#2f3131",
+                "status-error": "#B23A2E",
+                "on-tertiary-fixed": "#2a1800",
+                "surface-container-high": "#e8e8e8",
+                "on-primary-fixed": "#00201d",
+                "on-error-container": "#93000a",
+                "on-tertiary": "#ffffff",
+                "error-container": "#ffdad6",
+                "on-primary-fixed-variant": "#0c4f4a",
+                "background": "#f9f9f9",
+                "surface-container-highest": "#e2e2e2",
+                "on-surface": "#1a1c1c",
+                "surface": "#f9f9f9",
+                "surface-bright": "#f9f9f9",
+                "on-secondary": "#ffffff",
+                "on-secondary-fixed": "#181c1e",
+                "secondary-fixed": "#e0e3e5",
+                "inverse-primary": "#96d2cb",
+                "primary": "#003733",
+                "on-error": "#ffffff",
+                "on-secondary-fixed-variant": "#434749",
+                "surface-container-low": "#f3f3f4",
+                "secondary-fixed-dim": "#c4c7c9",
+                "tertiary": "#452a00",
+                "error": "#ba1a1a",
+                "surface-container-lowest": "#ffffff",
+                "on-primary": "#ffffff",
+                "primary-fixed-dim": "#96d2cb"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "row-standard": "44px",
+                "gutter": "16px",
+                "container-padding": "24px",
+                "card-internal": "20px",
+                "unit": "4px",
+                "row-condensed": "32px"
+        },
+        "fontFamily": {
+                "headline-md": [
+                        "Space Grotesk"
+                ],
+                "data-md": [
+                        "IBM Plex Mono"
+                ],
+                "data-lg": [
+                        "IBM Plex Mono"
+                ],
+                "data-sm": [
+                        "IBM Plex Mono"
+                ],
+                "body-md": [
+                        "IBM Plex Sans"
+                ],
+                "body-lg": [
+                        "IBM Plex Sans"
+                ],
+                "label-caps": [
+                        "IBM Plex Sans"
+                ],
+                "headline-sm": [
+                        "Space Grotesk"
+                ],
+                "body-sm": [
+                        "IBM Plex Sans"
+                ],
+                "headline-lg": [
+                        "Space Grotesk"
+                ]
+        },
+        "fontSize": {
+                "headline-md": [
+                        "24px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "data-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "500"
+                        }
+                ],
+                "data-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "500"
+                        }
+                ],
+                "data-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "1",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.5",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-caps": [
+                        "11px",
+                        {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-sm": [
+                        "18px",
+                        {
+                                "lineHeight": "1.4",
+                                "letterSpacing": "0.01em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-sm": [
+                        "12px",
+                        {
+                                "lineHeight": "1.4",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "0.02em",
+                                "fontWeight": "600"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md text-body-md antialiased overflow-hidden flex h-screen">
+<!-- SideNavBar -->
+<aside class="flex flex-col h-screen w-64 border-r border-border-refined bg-panel-bg flex-shrink-0 z-20">
+<div class="p-container-padding flex flex-col gap-4 border-b border-border-refined">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center text-on-primary font-headline-sm text-headline-sm">PR</div>
+<div>
+<h1 class="font-headline-md text-headline-md tracking-tighter font-bold text-primary">RECOVERY OPS</h1>
+<p class="font-label-caps text-label-caps text-secondary mt-1">Ledger v2.4.0</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-4 flex flex-col gap-1 px-2">
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all rounded" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+<span class="font-label-caps text-label-caps uppercase">Dashboard</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all rounded" href="#">
+<span class="material-symbols-outlined mr-3">folder_managed</span>
+<span class="font-label-caps text-label-caps uppercase">Cases</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all rounded" href="#">
+<span class="material-symbols-outlined mr-3">policy</span>
+<span class="font-label-caps text-label-caps uppercase">Policy</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all rounded" href="#">
+<span class="material-symbols-outlined mr-3">history_edu</span>
+<span class="font-label-caps text-label-caps uppercase">Audit Log</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all rounded" href="#">
+<span class="material-symbols-outlined mr-3">priority_high</span>
+<span class="font-label-caps text-label-caps uppercase">Escalation Queue</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed bg-surface-container border-l-4 border-primary text-primary font-bold transition-all" href="#">
+<span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">api</span>
+<span class="font-label-caps text-label-caps uppercase">API Management</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all rounded" href="#">
+<span class="material-symbols-outlined mr-3">manage_accounts</span>
+<span class="font-label-caps text-label-caps uppercase">Operator Management</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-border-refined">
+<img alt="RECOVERY OPS sidebar" class="w-full h-auto object-cover opacity-30 mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk7uZo5uLY4KURy0JB-r1IKgbnuloR-Nvnxlggkxsu-3hvLSiU0OrgoW0BUoh8zdMz8fRkBQmQa5b1R2rxuIC2EoSfUHpYmKsjzpHH-fiGzBhwsiJTa-i4putEUt39zkUSkwZCZpkzECMt6ePPPzSSZU60d8rgSdtvRy613_i0sGiGVHIk_X9lRMTAXI8PWcFtBMIxBKVx3MS9wOlVis7Mf50NENwVHIfokiTwpExkzWU80RftsJDAywIoQydNp070PQ"/>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-screen overflow-hidden bg-background">
+<!-- TopAppBar -->
+<header class="h-row-standard w-full border-b border-border-refined bg-surface flex justify-between items-center px-container-padding flex-shrink-0 z-10">
+<div class="flex items-center">
+<span class="font-label-caps text-label-caps text-secondary uppercase">API Management / Configuration</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-secondary hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded p-1">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-secondary hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded p-1">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center border border-border-refined">
+<span class="material-symbols-outlined text-secondary text-sm">person</span>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<div class="flex-1 overflow-y-auto p-container-padding pb-32">
+<div class="max-w-7xl mx-auto flex flex-col gap-gutter">
+<div class="flex justify-between items-end mb-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">API Management</h2>
+<p class="font-body-md text-body-md text-secondary mt-2 max-w-2xl">Manage your programmatic access keys, webhook endpoints, and monitor API connectivity status across the Precision Ledger platform.</p>
+</div>
+<button class="bg-primary-container text-on-primary px-4 py-2 rounded font-label-caps text-label-caps border border-primary hover:bg-primary transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">add</span>
+                    GENERATE NEW KEY
+                </button>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-gutter">
+<!-- Left Column (Wider) -->
+<div class="xl:col-span-2 flex flex-col gap-gutter">
+<!-- Active Keys Table -->
+<section class="bg-surface border border-border-refined rounded flex flex-col">
+<div class="p-card-internal border-b border-border-refined flex justify-between items-center bg-panel-bg/50">
+<h3 class="font-headline-sm text-headline-sm text-primary">Active Keys</h3>
+<span class="font-label-caps text-label-caps text-secondary bg-surface-container px-2 py-1 rounded">3 ACTIVE</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-panel-bg border-b border-border-refined">
+<tr>
+<th class="py-3 px-card-internal font-label-caps text-label-caps text-secondary uppercase font-semibold">Name</th>
+<th class="py-3 px-card-internal font-label-caps text-label-caps text-secondary uppercase font-semibold">Prefix</th>
+<th class="py-3 px-card-internal font-label-caps text-label-caps text-secondary uppercase font-semibold">Permissions</th>
+<th class="py-3 px-card-internal font-label-caps text-label-caps text-secondary uppercase font-semibold">Status</th>
+<th class="py-3 px-card-internal font-label-caps text-label-caps text-secondary uppercase font-semibold text-right">Last Used</th>
+<th class="py-3 px-card-internal"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-border-refined hover:bg-surface-container-low transition-colors">
+<td class="py-row-condensed px-card-internal font-body-md text-body-md text-primary font-medium">Production Sync</td>
+<td class="py-row-condensed px-card-internal font-data-md text-data-md text-secondary">pk_prod_...</td>
+<td class="py-row-condensed px-card-internal font-body-sm text-body-sm text-secondary">Read / Write</td>
+<td class="py-row-condensed px-card-internal">
+<span class="inline-flex items-center px-2 py-0.5 rounded bg-status-success/20 text-status-success font-label-caps text-[10px] uppercase font-bold border border-status-success/30">Active</span>
+</td>
+<td class="py-row-condensed px-card-internal font-data-md text-data-md text-secondary text-right">12s ago</td>
+<td class="py-row-condensed px-card-internal text-right">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">more_vert</span></button>
+</td>
+</tr>
+<tr class="border-b border-border-refined hover:bg-surface-container-low transition-colors">
+<td class="py-row-condensed px-card-internal font-body-md text-body-md text-primary font-medium">Staging Integration</td>
+<td class="py-row-condensed px-card-internal font-data-md text-data-md text-secondary">sk_test_...</td>
+<td class="py-row-condensed px-card-internal font-body-sm text-body-sm text-secondary">Read Only</td>
+<td class="py-row-condensed px-card-internal">
+<span class="inline-flex items-center px-2 py-0.5 rounded bg-status-success/20 text-status-success font-label-caps text-[10px] uppercase font-bold border border-status-success/30">Active</span>
+</td>
+<td class="py-row-condensed px-card-internal font-data-md text-data-md text-secondary text-right">2h ago</td>
+<td class="py-row-condensed px-card-internal text-right">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-row-condensed px-card-internal font-body-md text-body-md text-primary font-medium">Legacy Export Script</td>
+<td class="py-row-condensed px-card-internal font-data-md text-data-md text-secondary">pk_live_...</td>
+<td class="py-row-condensed px-card-internal font-body-sm text-body-sm text-secondary">Read Only</td>
+<td class="py-row-condensed px-card-internal">
+<span class="inline-flex items-center px-2 py-0.5 rounded bg-status-neutral/20 text-secondary font-label-caps text-[10px] uppercase font-bold border border-status-neutral/30">Inactive</span>
+</td>
+<td class="py-row-condensed px-card-internal font-data-md text-data-md text-secondary text-right">4d ago</td>
+<td class="py-row-condensed px-card-internal text-right">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Webhook Endpoints -->
+<section class="bg-surface border border-border-refined rounded flex flex-col">
+<div class="p-card-internal border-b border-border-refined flex justify-between items-center bg-panel-bg/50">
+<h3 class="font-headline-sm text-headline-sm text-primary">Webhook Endpoints</h3>
+<button class="text-primary hover:text-primary-container font-label-caps text-label-caps uppercase border-b border-transparent hover:border-primary transition-all">Add Endpoint</button>
+</div>
+<div class="p-card-internal flex flex-col gap-4">
+<div class="border border-border-refined rounded p-4 flex flex-col gap-3 relative overflow-hidden bg-surface-container-lowest">
+<div class="absolute top-0 left-0 w-1 h-full bg-tertiary-container"></div>
+<div class="flex justify-between items-start pl-2">
+<div>
+<h4 class="font-body-md text-body-md text-primary font-semibold flex items-center gap-2">Main Application Listener <span class="w-2 h-2 rounded-full bg-status-success"></span></h4>
+<p class="font-data-md text-data-md text-secondary mt-1">https://api.merchant.com/webhooks/ledger</p>
+</div>
+<span class="font-label-caps text-label-caps text-tertiary-container bg-tertiary-fixed border border-tertiary-fixed-dim px-2 py-1 rounded">LIVE</span>
+</div>
+<div class="pl-2 border-t border-border-refined pt-3 flex gap-6">
+<div>
+<span class="font-label-caps text-label-caps text-secondary block mb-1">EVENTS</span>
+<span class="font-body-sm text-body-sm text-primary">payment.failed, refund.created, dispute.opened</span>
+</div>
+<div>
+<span class="font-label-caps text-label-caps text-secondary block mb-1">FAILED DELIVERIES</span>
+<span class="font-data-md text-data-md text-primary">0 / 24h</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column (Narrower) -->
+<div class="flex flex-col gap-gutter">
+<!-- Test Connection Panel -->
+<section class="bg-surface border border-border-refined rounded flex flex-col h-full">
+<div class="p-card-internal border-b border-border-refined bg-panel-bg/50">
+<h3 class="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+                                Test Connection
+                            </h3>
+</div>
+<div class="p-card-internal flex flex-col gap-4 flex-1">
+<p class="font-body-sm text-body-sm text-secondary">Use this snippet to verify your authentication token against the staging environment.</p>
+<div class="bg-inverse-surface text-inverse-on-surface rounded border border-on-surface-variant flex flex-col flex-1 min-h-[200px]">
+<div class="flex justify-between items-center px-3 py-2 border-b border-on-surface-variant bg-on-surface">
+<span class="font-data-sm text-data-sm text-secondary-fixed">cURL</span>
+<button class="text-secondary-fixed hover:text-white transition-colors" title="Copy to clipboard">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+<div class="p-4 font-data-md text-data-md overflow-x-auto flex-1">
+<pre class="text-primary-fixed-dim whitespace-pre-wrap break-all">curl -X GET \
+  https://api.precisionledger.dev/v1/ping \
+  -H "Authorization: Bearer <span class="text-tertiary-fixed-dim">pk_test_...</span>" \
+  -H "Content-Type: application/json"</pre>
+</div>
+</div>
+<button class="w-full bg-surface-container border border-border-refined text-primary font-label-caps text-label-caps py-2 rounded hover:bg-surface-variant hover:border-primary transition-all">
+                                SEND TEST REQUEST
+                            </button>
+<div class="border-t border-border-refined pt-4 mt-2">
+<span class="font-label-caps text-label-caps text-secondary block mb-2">API METRICS (30D)</span>
+<div class="flex justify-between items-end">
+<div>
+<div class="font-data-lg text-data-lg text-primary">1.2M</div>
+<div class="font-body-sm text-body-sm text-secondary">Total Requests</div>
+</div>
+<div class="text-right">
+<div class="font-data-lg text-data-lg text-status-success">99.98%</div>
+<div class="font-body-sm text-body-sm text-secondary">Success Rate</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

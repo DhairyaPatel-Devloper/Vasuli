@@ -1,0 +1,379 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Payment Recovery Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary": "#452a00",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#434749",
+                        "surface-tint": "#2c6862",
+                        "error-container": "#ffdad6",
+                        "on-surface": "#1a1c1c",
+                        "background": "#ffffff",
+                        "primary-fixed": "#b2eee7",
+                        "on-primary-fixed-variant": "#0c4f4a",
+                        "border-refined": "#D8DEE2",
+                        "surface-variant": "#e2e2e2",
+                        "surface-container": "#eeeeee",
+                        "status-neutral": "#94A3B8",
+                        "tertiary-fixed-dim": "#ffb958",
+                        "on-surface-variant": "#3f4947",
+                        "status-success": "#4C7A63",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f9f9f9",
+                        "secondary-container": "#dde0e2",
+                        "inverse-on-surface": "#f0f1f1",
+                        "surface": "#f9f9f9",
+                        "tertiary-fixed": "#ffddb5",
+                        "on-secondary-container": "#5f6365",
+                        "secondary-fixed-dim": "#c4c7c9",
+                        "on-primary-fixed": "#00201d",
+                        "surface-container-high": "#e8e8e8",
+                        "surface-dim": "#dadada",
+                        "on-error": "#ffffff",
+                        "panel-bg": "#EEF1F3",
+                        "on-background": "#1a1c1c",
+                        "on-tertiary-fixed": "#2a1800",
+                        "surface-container-low": "#f3f3f4",
+                        "primary-container": "#0b4f4a",
+                        "inverse-surface": "#2f3131",
+                        "tertiary-container": "#633e00",
+                        "on-secondary-fixed": "#181c1e",
+                        "on-tertiary-container": "#eba746",
+                        "inverse-primary": "#96d2cb",
+                        "on-primary-container": "#84bfb8",
+                        "status-error": "#B23A2E",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5b5f61",
+                        "outline": "#707977",
+                        "primary-fixed-dim": "#96d2cb",
+                        "surface-container-highest": "#e2e2e2",
+                        "secondary-fixed": "#e0e3e5",
+                        "outline-variant": "#bfc8c6",
+                        "on-error-container": "#93000a",
+                        "primary": "#003733",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#643f00",
+                        "warm-gold": "#C98A2B"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "gutter": "16px",
+                        "unit": "4px",
+                        "row-condensed": "32px",
+                        "container-padding": "24px",
+                        "row-standard": "44px",
+                        "card-internal": "20px"
+                    },
+                    fontFamily: {
+                        "headline-lg": ["Space Grotesk"],
+                        "data-md": ["IBM Plex Mono"],
+                        "data-lg": ["IBM Plex Mono"],
+                        "headline-sm": ["Space Grotesk"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "body-sm": ["IBM Plex Sans"],
+                        "headline-md": ["Space Grotesk"],
+                        "label-caps": ["IBM Plex Sans"],
+                        "data-sm": ["IBM Plex Mono"],
+                        "body-md": ["IBM Plex Sans"]
+                    },
+                    fontSize: {
+                        "headline-lg": ["32px", { lineHeight: "1.2", letterSpacing: "0.02em", fontWeight: "600" }],
+                        "data-md": ["14px", { lineHeight: "1", fontWeight: "500" }],
+                        "data-lg": ["16px", { lineHeight: "1", fontWeight: "500" }],
+                        "headline-sm": ["18px", { lineHeight: "1.4", letterSpacing: "0.01em", fontWeight: "500" }],
+                        "body-lg": ["16px", { lineHeight: "1.5", fontWeight: "400" }],
+                        "body-sm": ["12px", { lineHeight: "1.4", fontWeight: "400" }],
+                        "headline-md": ["24px", { lineHeight: "1.2", letterSpacing: "0.01em", fontWeight: "600" }],
+                        "label-caps": ["11px", { lineHeight: "1", letterSpacing: "0.05em", fontWeight: "600" }],
+                        "data-sm": ["12px", { lineHeight: "1", fontWeight: "400" }],
+                        "body-md": ["14px", { lineHeight: "1.5", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #FFFFFF; color: #1a1c1c; }
+        .card { background-color: #FFFFFF; border: 1px solid #D8DEE2; border-radius: 4px; padding: 20px; }
+        .card-header { padding-bottom: 16px; border-bottom: 1px solid #D8DEE2; margin-bottom: 16px; }
+        .kpi-card { background-color: #EEF1F3; border: 1px solid #D8DEE2; border-radius: 4px; padding: 20px; }
+        .data-table th { background-color: #EEF1F3; font-family: 'IBM Plex Sans', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 16px; text-align: left; }
+        .data-table td { padding: 16px; border-bottom: 1px solid #D8DEE2; }
+        .data-table tr:last-child td { border-bottom: none; }
+        .status-pill { border-radius: 12px; padding: 4px 8px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .status-action { background-color: #E2E8F0; color: #334155; }
+        .status-escalated { background-color: #FEF08A; color: #854D0E; }
+        .status-resolved { background-color: #BBF7D0; color: #166534; }
+        .status-written-off { background-color: #FECACA; color: #991B1B; }
+        
+        .bar-chart-container { display: flex; align-items: flex-end; height: 300px; gap: 40px; padding-top: 40px; }
+        .bar-group { display: flex; flex-direction: column; align-items: center; gap: 12px; flex: 1; }
+        .bar-wrapper { position: relative; width: 80px; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+        .bar { width: 100%; border-radius: 4px 4px 0 0; }
+        .bar-baseline { background-color: #94A3B8; height: 60%; }
+        .bar-agent { background-color: #0B4F4A; height: 85%; }
+        .bar-lift { position: absolute; bottom: 60%; width: 100%; background-color: #C98A2B; height: 25%; z-index: 10; border-radius: 4px 4px 0 0; }
+        
+        .velocity-chart { display: flex; align-items: flex-end; height: 200px; gap: 12px; justify-content: space-between; }
+        .v-bar { width: 100%; background-color: #0B4F4A; border-radius: 4px 4px 0 0; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+<!-- SideNavBar Component -->
+<nav class="h-screen w-56 border-r border-border-refined bg-panel-bg flex flex-col overflow-y-auto">
+<div class="p-container-padding border-b border-border-refined">
+<h1 class="font-headline-md text-headline-md tracking-tighter font-bold text-primary">RECOVERY OPS</h1>
+<p class="font-label-caps text-label-caps text-secondary mt-1">Ledger v2.4.0</p>
+</div>
+<div class="flex-1 py-4">
+<a class="flex items-center w-full px-4 py-row-condensed bg-gradient-to-r from-surface-container to-surface-bright text-primary font-bold shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),0_2px_4px_rgba(0,0,0,0.05)] relative z-10" href="#">
+<span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-headline-sm text-xs font-semibold uppercase tracking-wider">Dashboard</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3">folder_managed</span>
+<span class="font-headline-sm text-xs font-semibold uppercase tracking-wider">Cases</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3">policy</span>
+<span class="font-headline-sm text-xs font-semibold uppercase tracking-wider">Policy</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3">history_edu</span>
+<span class="font-headline-sm text-xs font-semibold uppercase tracking-wider">Audit Log</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3">priority_high</span>
+<span class="font-headline-sm text-xs font-semibold uppercase tracking-wider">Escalation Queue</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3">api</span>
+<span class="font-headline-sm text-xs font-semibold uppercase tracking-wider">API Management</span>
+</a>
+<a class="flex items-center w-full px-4 py-row-condensed text-secondary hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined mr-3">manage_accounts</span>
+<span class="font-headline-sm text-xs font-semibold uppercase tracking-wider">Operator Management</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-background">
+<!-- TopAppBar -->
+<header class="h-row-standard w-full border-b border-border-refined flex justify-between items-center px-container-padding bg-surface">
+<div class="flex items-center">
+<span class="font-label-caps text-label-caps text-secondary mr-2">Payment Recovery</span>
+<span class="text-secondary mx-2">/</span>
+<span class="text-primary font-bold text-sm">Dashboard</span>
+</div>
+<div class="flex items-center gap-4 text-secondary">
+<button class="hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded"><span class="material-symbols-outlined">notifications</span></button>
+<button class="hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded"><span class="material-symbols-outlined">settings</span></button>
+<div class="w-8 h-8 rounded-full bg-border-refined ml-2"></div>
+</div>
+</header>
+<div class="p-container-padding max-w-7xl mx-auto space-y-6">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary">System Performance Overview</h2>
+<p class="font-body-md text-body-md text-secondary mt-2">Real-time metrics for current ledger cycle.</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-white border border-border-refined text-primary rounded font-label-caps text-label-caps">EXPORT REPORT</button>
+</div>
+</div>
+<!-- KPI Row -->
+<div class="grid grid-cols-4 gap-gutter mb-8">
+<div class="kpi-card">
+<p class="font-label-caps text-label-caps text-secondary mb-2 uppercase">Total At Risk</p>
+<p class="font-data-lg text-headline-md text-primary font-semibold">$12,450,000.00</p>
+</div>
+<div class="kpi-card">
+<p class="font-label-caps text-label-caps text-secondary mb-2 uppercase">Total Recovered</p>
+<p class="font-data-lg text-headline-md text-primary font-semibold">$8,920,400.00</p>
+</div>
+<div class="kpi-card">
+<p class="font-label-caps text-label-caps text-secondary mb-2 uppercase">Recovery Rate</p>
+<p class="font-data-lg text-headline-md text-primary font-semibold">71.6%</p>
+</div>
+<div class="kpi-card">
+<p class="font-label-caps text-label-caps text-secondary mb-2 uppercase">Cases Handled</p>
+<p class="font-data-lg text-headline-md text-primary font-semibold">4,192</p>
+</div>
+</div>
+<!-- Main Charts Row -->
+<div class="grid grid-cols-12 gap-gutter mb-8"><!-- Daily Recovery Velocity (Now on Left, col-span-8) -->
+<div class="col-span-8 card flex flex-col">
+<div class="card-header">
+<h3 class="font-headline-sm text-headline-sm text-primary">Daily Recovery Velocity</h3>
+</div>
+<div class="flex-1 flex flex-col justify-end pt-4">
+<div class="velocity-chart relative h-[300px] gap-8 px-8">
+<!-- Grid lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="w-full h-px bg-border-refined opacity-50"></div>
+<div class="w-full h-px bg-border-refined opacity-50"></div>
+<div class="w-full h-px bg-border-refined opacity-50"></div>
+<div class="w-full h-px bg-border-refined opacity-50"></div>
+<div class="w-full h-px bg-border-refined"></div>
+</div>
+<!-- Bars -->
+<div class="v-bar h-[30%] relative z-10" title="Mon: $120k"></div>
+<div class="v-bar h-[45%] relative z-10" title="Tue: $180k"></div>
+<div class="v-bar h-[35%] relative z-10" title="Wed: $140k"></div>
+<div class="v-bar h-[60%] relative z-10" title="Thu: $240k"></div>
+<div class="v-bar h-[80%] relative z-10" title="Fri: $320k"></div>
+<div class="v-bar h-[50%] relative z-10" title="Sat: $200k"></div>
+<div class="v-bar h-[90%] relative z-10 bg-warm-gold" title="Sun: $360k"></div>
+</div>
+<div class="flex justify-between mt-4 px-8 font-data-sm text-data-sm text-secondary">
+<span class="">M</span><span class="">T</span><span class="">W</span><span class="">T</span><span class="">F</span><span class="">S</span><span class="">S</span>
+</div>
+</div>
+</div>
+<!-- Baseline vs Agent Comparison (Now on Right, col-span-4) -->
+<div class="col-span-4 card">
+<div class="card-header">
+<h3 class="font-headline-sm text-headline-sm text-primary">Recovery Performance</h3>
+</div>
+<div class="bar-chart-container relative h-[300px] flex items-end gap-gutter pt-8 pb-8 px-4">
+  <!-- Y-Axis Labels -->
+  <div class="absolute left-0 top-8 bottom-8 flex flex-col justify-between text-secondary font-data-sm text-[10px] pr-2 border-r border-border-refined">
+    <span class="">$10M</span>
+    <span class="">$8M</span>
+    <span class="">$6M</span>
+    <span class="">$4M</span>
+    <span class="">$2M</span>
+    <span class="">$0</span>
+  </div>
+  
+  <!-- Chart Area -->
+  <div class="ml-12 flex-1 h-full flex justify-around items-end border-b border-border-refined relative"><!-- Grid Lines -->
+    <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+      <div class="w-full h-px bg-outline"></div>
+      <div class="w-full h-px bg-outline"></div>
+      <div class="w-full h-px bg-outline"></div>
+      <div class="w-full h-px bg-outline"></div>
+      <div class="w-full h-px bg-outline"></div>
+    </div>
+
+    <!-- Q1 Bar ($2M - 20%) -->
+    <div class="flex flex-col items-center gap-2 w-12 relative z-10">
+      <div class="w-6 flex flex-col justify-end h-[20%] overflow-hidden rounded-t">
+        <div class="h-1/2 bg-primary"></div>
+        <div class="h-1/2 bg-primary opacity-80"></div>
+      </div>
+      <span class="font-data-sm text-[10px] text-secondary uppercase">Q1</span>
+    </div>
+
+    <!-- Q2 Bar ($8M - 80%) -->
+    <div class="flex flex-col items-center gap-2 w-12 relative z-10">
+      <div class="w-6 flex flex-col justify-end h-[80%] overflow-hidden rounded-t">
+        <div class="h-1/4 bg-primary"></div>
+        <div class="h-1/4 bg-primary opacity-90"></div>
+        <div class="h-1/4 bg-primary opacity-80"></div>
+        <div class="h-1/4 bg-primary opacity-70"></div>
+      </div>
+      <span class="font-data-sm text-[10px] text-secondary uppercase">Q2</span>
+    </div>
+
+    <!-- Q3 Bar ($4M - 40%) -->
+    <div class="flex flex-col items-center gap-2 w-12 relative z-10">
+      <div class="w-6 flex flex-col justify-end h-[40%] overflow-hidden rounded-t">
+        <div class="h-1/3 bg-primary"></div>
+        <div class="h-1/3 bg-primary opacity-85"></div>
+        <div class="h-1/3 bg-primary opacity-70"></div>
+      </div>
+      <span class="font-data-sm text-[10px] text-secondary uppercase">Q3</span>
+    </div>
+
+    <!-- Q4 Bar (Projected - 55%) -->
+    <div class="flex flex-col items-center gap-2 w-12 relative z-10">
+      <div class="w-6 flex flex-col justify-end h-[55%] overflow-hidden rounded-t">
+        <div class="h-full bg-warm-gold"></div>
+      </div>
+      <span class="font-data-sm text-[10px] text-secondary uppercase">Q4</span>
+    </div></div>
+</div>
+</div></div>
+<!-- Recent Cases Table -->
+<div class="card">
+<div class="card-header flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-primary">Recent Cases</h3>
+<button class="text-primary font-label-caps text-label-caps hover:underline">VIEW ALL</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full data-table">
+<thead>
+<tr>
+<th class="">Case ID</th>
+<th class="text-right">Amount</th>
+<th class="">Status</th>
+<th class="">Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="font-data-md text-data-md">TX-9921</td>
+<td class="font-data-md text-data-md text-right">$4,500.00</td>
+<td class=""><span class="status-pill status-action">Action Taken</span></td>
+<td><button class="text-secondary hover:text-primary"><span class="material-symbols-outlined text-sm">more_horiz</span></button></td>
+</tr>
+<tr>
+<td class="font-data-md text-data-md">TX-9920</td>
+<td class="font-data-md text-data-md text-right">$12,850.00</td>
+<td class=""><span class="status-pill status-escalated">Escalated</span></td>
+<td><button class="text-secondary hover:text-primary"><span class="material-symbols-outlined text-sm">more_horiz</span></button></td>
+</tr>
+<tr>
+<td class="font-data-md text-data-md">TX-9919</td>
+<td class="font-data-md text-data-md text-right">$1,200.00</td>
+<td class=""><span class="status-pill status-resolved">Resolved</span></td>
+<td><button class="text-secondary hover:text-primary"><span class="material-symbols-outlined text-sm">more_horiz</span></button></td>
+</tr>
+<tr>
+<td class="font-data-md text-data-md">TX-9918</td>
+<td class="font-data-md text-data-md text-right">$8,900.50</td>
+<td class=""><span class="status-pill status-written-off">Written Off</span></td>
+<td><button class="text-secondary hover:text-primary"><span class="material-symbols-outlined text-sm">more_horiz</span></button></td>
+</tr>
+<tr>
+<td class="font-data-md text-data-md">TX-9917</td>
+<td class="font-data-md text-data-md text-right">$3,450.00</td>
+<td class=""><span class="status-pill status-action">Action Taken</span></td>
+<td><button class="text-secondary hover:text-primary"><span class="material-symbols-outlined text-sm">more_horiz</span></button></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+
+
+
+
+
+
+
+
+
+
+</body></html>

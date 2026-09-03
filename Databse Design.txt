@@ -1,0 +1,222 @@
+-- ============================================================
+-- PAYMENT RECOVERY ENGINE — FULL DATABASE SCHEMA
+-- Run this entire file once, top to bottom, in Supabase SQL Editor
+-- ============================================================
+
+-- Safety net for UUID generation (harmless if already available)
+create extension if not exists pgcrypto;
+
+-- ============================================================
+-- TABLE 1: profiles
+-- Extends Supabase's own auth.users with app-specific role info.
+-- Never store passwords here — Supabase Auth already handles that.
+-- ============================================================
+create table public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  role text not null default 'operator' check (role in ('admin', 'operator')),
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+-- Automatically creates a profile row the moment someone signs up via Supabase Auth
+create function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, email, role)
+  values (new.id, new.email, 'operator');
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+-- ============================================================
+-- TABLE 2: leaks
+-- One row per failed payment, abandoned checkout, or failed subscription.
+-- ============================================================
+create table public.leaks (
+  id uuid primary key default gen_random_uuid(),
+  razorpay_payment_id text,
+  amount numeric(12,2) not null,
+  currency text not null default 'INR',
+  source text not null check (source in ('payment_failed', 'checkout_abandoned', 'subscription_failed')),
+  detected_at timestamptz not null default now(),
+  root_cause text check (root_cause in ('bank_decline_soft', 'technical_hard_decline', 'customer_error', 'unknown')),
+  ev_score numeric(5,2),
+  chosen_action text check (chosen_action in ('retry_now', 'retry_scheduled', 'send_payment_link', 'notify_customer', 'no_action', 'initiate_call')),
+  status text not null default 'open' check (status in ('open', 'action_taken', 'resolved', 'escalated', 'needs_manual_diagnosis', 'written_off')),
+  assigned_to_operator_id uuid references public.profiles(id) on delete set null
+);
+
+-- ============================================================
+-- TABLE 3: audit_log
+-- Append-only history — every event, on every leak, forever.
+-- ============================================================
+create table public.audit_log (
+  id uuid primary key default gen_random_uuid(),
+  leak_id uuid not null references public.leaks(id) on delete cascade,
+  event_timestamp timestamptz not null default now(),
+  event_type text not null check (event_type in ('detected', 'diagnosed', 'decided', 'acted', 'blocked', 'escalated', 'human_override')),
+  detail text,
+  outcome text
+);
+
+-- ============================================================
+-- TABLE 4: policy_config
+-- The stopping rules. Normally only one active row exists.
+-- ============================================================
+create table public.policy_config (
+  id uuid primary key default gen_random_uuid(),
+  max_attempts_per_day integer not null default 3,
+  max_total_attempts integer not null default 5,
+  quiet_hours_start time not null default '21:00',
+  quiet_hours_end time not null default '09:00',
+  hard_stop_keywords text[] not null default array['fraud', 'chargeback', 'unauthorized', 'never made this'],
+  cooldown_hours integer not null default 48,
+  updated_at timestamptz not null default now(),
+  updated_by uuid references public.profiles(id) on delete set null
+);
+
+-- ============================================================
+-- TABLE 5: api_credentials
+-- Stores provider API keys with category + priority for automatic failover.
+-- ============================================================
+create table public.api_credentials (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (category in ('llm_reasoning', 'email', 'whatsapp', 'voice_call', 'payment_gateway')),
+  provider_name text not null,
+  account_email text, -- nullable: which provider account/login this key belongs to
+  encrypted_key text not null,
+  encrypted_secret text not null,
+  priority integer not null default 1,
+  status text not null default 'active' check (status in ('active', 'rate_limited', 'failed', 'disabled')),
+  last_used_at timestamptz,
+  last_error text,
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- ============================================================
+-- INDEXES — speed up the exact queries your 9 screens will run
+-- ============================================================
+create index idx_leaks_status on public.leaks(status);
+create index idx_leaks_assigned_operator on public.leaks(assigned_to_operator_id);
+create index idx_audit_log_leak_id on public.audit_log(leak_id);
+create index idx_api_credentials_category_priority on public.api_credentials(category, priority);
+
+-- ============================================================
+-- ROW LEVEL SECURITY — every table locked down by default
+-- ============================================================
+alter table public.profiles enable row level security;
+alter table public.leaks enable row level security;
+alter table public.audit_log enable row level security;
+alter table public.policy_config enable row level security;
+alter table public.api_credentials enable row level security;
+
+-- Helper function: is the currently logged-in user an Admin?
+create function public.is_admin()
+returns boolean as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'admin'
+  );
+$$ language sql security definer stable;
+
+-- profiles: anyone can see their own row; Admins can see/manage everyone's
+create policy "profiles_select_own_or_admin" on public.profiles
+  for select using (id = auth.uid() or public.is_admin());
+create policy "profiles_admin_manage" on public.profiles
+  for all using (public.is_admin());
+
+-- leaks: Admin sees/manages everything; Operator sees + updates only their own assigned cases
+create policy "leaks_admin_all" on public.leaks
+  for all using (public.is_admin());
+create policy "leaks_operator_select_assigned" on public.leaks
+  for select using (assigned_to_operator_id = auth.uid());
+create policy "leaks_operator_update_assigned" on public.leaks
+  for update using (assigned_to_operator_id = auth.uid());
+
+-- audit_log: Admin sees everything; Operator sees only logs tied to their assigned leaks
+create policy "audit_log_admin_all" on public.audit_log
+  for all using (public.is_admin());
+create policy "audit_log_operator_assigned" on public.audit_log
+  for select using (
+    exists (
+      select 1 from public.leaks
+      where leaks.id = audit_log.leak_id
+      and leaks.assigned_to_operator_id = auth.uid()
+    )
+  );
+
+-- policy_config: Admin only — Operators never see or touch stopping rules
+create policy "policy_config_admin_only" on public.policy_config
+  for all using (public.is_admin());
+
+-- api_credentials: Admin only — this table must NEVER be readable by the Operator role
+create policy "api_credentials_admin_only" on public.api_credentials
+  for all using (public.is_admin());
+
+-- ============================================================
+-- TABLE 6: system_prompts
+-- Editable per-channel system prompts, controlled from the Admin UI
+-- instead of being hardcoded in application code.
+-- ============================================================
+create table public.system_prompts (
+  id uuid primary key default gen_random_uuid(),
+  channel text not null unique check (channel in ('call', 'whatsapp', 'email')),
+  prompt_text text not null,
+  updated_at timestamptz not null default now(),
+  updated_by uuid references public.profiles(id) on delete set null
+);
+
+-- ============================================================
+-- TABLE 7: conversation_history
+-- Stores every turn of a multi-turn conversation (call or chat),
+-- so Gemini always receives full context instead of restarting cold each turn.
+-- ============================================================
+create table public.conversation_history (
+  id uuid primary key default gen_random_uuid(),
+  leak_id uuid references public.leaks(id) on delete cascade,
+  channel text not null check (channel in ('call', 'whatsapp', 'email')),
+  external_thread_id text not null, -- e.g. Twilio's CallSid — the natural session key for one call
+  turn_number integer not null,
+  role text not null check (role in ('assistant', 'customer')),
+  message_text text not null,
+  created_at timestamptz not null default now()
+);
+
+create index idx_conversation_history_thread on public.conversation_history(external_thread_id, turn_number);
+
+alter table public.system_prompts enable row level security;
+alter table public.conversation_history enable row level security;
+
+-- system_prompts: Admin only — Operators never edit these
+create policy "system_prompts_admin_only" on public.system_prompts
+  for all using (public.is_admin());
+
+-- conversation_history: Admin sees all; Operator sees only threads tied to their assigned leaks
+create policy "conversation_history_admin_all" on public.conversation_history
+  for all using (public.is_admin());
+create policy "conversation_history_operator_assigned" on public.conversation_history
+  for select using (
+    exists (
+      select 1 from public.leaks
+      where leaks.id = conversation_history.leak_id
+      and leaks.assigned_to_operator_id = auth.uid()
+    )
+  );
+
+-- Seed the initial call system prompt (Admin can edit this anytime from the UI afterward)
+insert into public.system_prompts (channel, prompt_text) values (
+  'call',
+  'You are a calm, professional payment recovery assistant for [Business Name], speaking in natural Hinglish on a live phone call. Reply with ONLY the next spoken line — no stage directions, under 2 sentences. Goal: get a retry confirmation or a specific payment date. If the customer gives a date or agrees to retry: confirm it, thank them, end with [END_CALL_RESOLVED]. If dispute language appears ("fraud", "never made this", "unauthorized", "chargeback"): say a specialist will follow up, end with [END_CALL_ESCALATE]. If the customer clearly refuses or cannot commit: say you will try again later, end with [END_CALL_NO_RESOLUTION]. Never raise your tone or argue, regardless of the customer''s tone. If none of these apply yet, just give your next line with no marker.'
+);
+
+-- ============================================================
+-- STARTER DATA — so your app has a policy to read on first load
+-- ============================================================
+insert into public.policy_config (max_attempts_per_day, max_total_attempts, cooldown_hours)
+values (3, 5, 48);

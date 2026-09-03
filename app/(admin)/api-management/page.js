@@ -1,0 +1,386 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Header from '@/components/Header';
+import StatusPill from '@/components/StatusPill';
+
+export default function AdminApiManagementPage() {
+  const [credentials, setCredentials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCred, setEditingCred] = useState(null);
+  const [formData, setFormData] = useState({
+    category: 'payment_gateway',
+    provider_name: 'Razorpay Key Primary',
+    account_email: 'admin@company.com',
+    encrypted_key: '',
+    encrypted_secret: '',
+    priority: 1,
+    status: 'active',
+  });
+  const [toast, setToast] = useState('');
+
+  useEffect(() => {
+    fetchCredentials();
+  }, []);
+
+  const fetchCredentials = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/credentials');
+      const data = await res.json();
+      if (data.success && data.credentials) {
+        setCredentials(data.credentials);
+      } else {
+        console.error('[api-management] Failed to fetch credentials:', data.error);
+        setCredentials([]);
+      }
+    } catch (e) {
+      console.error('[api-management] Unexpected fetch error:', e.message);
+      setCredentials([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveCredential = async (e) => {
+    e.preventDefault();
+    setToast('');
+
+    try {
+      const method = editingCred ? 'PUT' : 'POST';
+      const payload = editingCred ? { ...formData, id: editingCred.id } : formData;
+
+      const res = await fetch('/api/credentials', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setToast(`Credential ${editingCred ? 'updated' : 'added'} successfully.`);
+        setShowModal(false);
+        setEditingCred(null);
+        resetForm();
+        fetchCredentials();
+      } else {
+        setToast(`Error: ${data.error}`);
+      }
+    } catch (err) {
+      setToast(`Save error: ${err.message}`);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this API credential?')) return;
+    try {
+      const res = await fetch(`/api/credentials?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setToast('Credential deleted.');
+        fetchCredentials();
+      }
+    } catch (err) {
+      setToast(`Delete error: ${err.message}`);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      category: 'payment_gateway',
+      provider_name: 'Razorpay Key Primary',
+      account_email: 'admin@company.com',
+      encrypted_key: '',
+      encrypted_secret: '',
+      priority: 1,
+      status: 'active',
+    });
+  };
+
+  const openAddModal = () => {
+    resetForm();
+    setEditingCred(null);
+    setShowModal(true);
+  };
+
+  const openEditModal = (cred) => {
+    setEditingCred(cred);
+    setFormData({
+      category: cred.category,
+      provider_name: cred.provider_name,
+      account_email: cred.account_email || '',
+      encrypted_key: cred.encrypted_key || '',
+      encrypted_secret: cred.encrypted_secret || '',
+      priority: cred.priority,
+      status: cred.status,
+    });
+    setShowModal(true);
+  };
+
+  // Categories defined by DB check constraint
+  const categories = ['payment_gateway', 'llm_reasoning', 'email', 'whatsapp', 'voice_call'];
+
+  return (
+    <div className="min-h-screen bg-[#f9f9f9] flex flex-col">
+      <Header
+        title="Third-Party API Credentials & Key Rotation"
+        subtitle="Manage encrypted API keys and secrets for payment gateways, LLMs, email, WhatsApp, and voice calls with priority failover."
+      />
+
+      <div className="p-8 flex-1 flex flex-col gap-6">
+        {toast && (
+          <div className="p-3 bg-[#4C7A63]/15 border border-[#4C7A63]/30 rounded text-xs font-mono-data text-[#0b4f4a] flex items-center justify-between">
+            <span>{toast}</span>
+            <button onClick={() => setToast('')} className="font-bold">×</button>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-headline font-semibold text-lg text-[#1a1c1c]">Configured Provider Keys & Secrets</h2>
+            <p className="text-xs text-[#3f4947]">Keys are dynamically loaded by category priority order at runtime.</p>
+          </div>
+          <button
+            onClick={openAddModal}
+            className="px-4 py-2.5 bg-[#0b4f4a] hover:bg-[#003733] text-white font-headline font-semibold text-xs rounded shadow flex items-center gap-2 transition-colors"
+          >
+            <span className="material-symbols-outlined text-base">add</span>
+            Add API Credential
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          {categories.map((cat) => {
+            const catCreds = credentials.filter((c) => (c.category || '').toLowerCase() === cat);
+            return (
+              <div key={cat} className="bg-white border border-[#D8DEE2] rounded shadow-sm overflow-hidden">
+                <div className="p-4 bg-[#f3f3f4] border-b border-[#D8DEE2] flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#0b4f4a]"></span>
+                    <h3 className="font-headline font-bold text-sm text-[#1a1c1c] uppercase tracking-wider">
+                      {cat.replace(/_/g, ' ')} Category ({catCreds.length} keys)
+                    </h3>
+                  </div>
+                  <span className="font-mono-data text-[11px] text-[#94A3B8]">
+                    Fallback order by Priority (1 = Highest)
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-[#f9f9f9] border-b border-[#D8DEE2] text-[11px] font-mono-data uppercase text-[#3f4947]">
+                        <th className="py-3 px-4">Priority</th>
+                        <th className="py-3 px-4">Provider Name</th>
+                        <th className="py-3 px-4">Account Email</th>
+                        <th className="py-3 px-4">Masked Key ID</th>
+                        <th className="py-3 px-4">Masked Secret</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4">Last Error</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#D8DEE2] text-xs">
+                      {catCreds.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="py-4 text-center text-[#94A3B8] font-mono-data">
+                            No active credentials configured for category [{cat}].
+                          </td>
+                        </tr>
+                      ) : (
+                        catCreds.map((cred) => (
+                          <tr key={cred.id} className="hover:bg-[#f9f9f9] transition-colors">
+                            <td className="py-3 px-4 font-mono-data font-bold text-[#0b4f4a]">
+                              P{cred.priority}
+                            </td>
+                            <td className="py-3 px-4 font-mono-data font-semibold text-[#1a1c1c]">
+                              {cred.provider_name}
+                            </td>
+                            <td className="py-3 px-4 font-mono-data text-[#3f4947]">
+                              {cred.account_email || '-'}
+                            </td>
+                            <td className="py-3 px-4 font-mono-data text-[#3f4947]">
+                              {maskKey(cred.encrypted_key)}
+                            </td>
+                            <td className="py-3 px-4 font-mono-data text-[#3f4947]">
+                              {cred.encrypted_secret ? maskKey(cred.encrypted_secret) : <span className="text-[#94A3B8] italic">None</span>}
+                            </td>
+                            <td className="py-3 px-4">
+                              <StatusPill status={cred.status} />
+                            </td>
+                            <td className="py-3 px-4 font-mono-data text-[#B23A2E] text-[11px] max-w-xs truncate">
+                              {cred.last_error || 'None'}
+                            </td>
+                            <td className="py-3 px-4 text-right space-x-2">
+                              <button
+                                onClick={() => openEditModal(cred)}
+                                className="px-2 py-1 text-[#0b4f4a] hover:underline font-mono-data"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(cred.id)}
+                                className="px-2 py-1 text-[#B23A2E] hover:underline font-mono-data"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg border border-[#D8DEE2] w-full max-w-lg overflow-hidden shadow-2xl space-y-4">
+            <div className="bg-[#0b4f4a] text-white px-6 py-4 flex items-center justify-between">
+              <h3 className="font-headline font-bold text-base">
+                {editingCred ? 'Edit API Credential' : 'Add New API Credential'}
+              </h3>
+              <button onClick={() => setShowModal(false)} className="text-[#84bfb8] hover:text-white">
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCredential} className="p-6 space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
+                  Provider Category
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                >
+                  <option value="payment_gateway">Payment Gateway (Razorpay)</option>
+                  <option value="llm_reasoning">LLM Reasoning (Gemini)</option>
+                  <option value="email">Transactional Email (Resend)</option>
+                  <option value="whatsapp">WhatsApp Service (Twilio)</option>
+                  <option value="voice_call">Voice Call AI (Sarvam)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
+                  Provider Name / Label
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.provider_name}
+                  onChange={(e) => setFormData({ ...formData, provider_name: e.target.value })}
+                  placeholder="e.g. Razorpay Test Key Primary"
+                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
+                  Account Email (Optional)
+                </label>
+                <input
+                  type="email"
+                  value={formData.account_email}
+                  onChange={(e) => setFormData({ ...formData, account_email: e.target.value })}
+                  placeholder="account@company.com"
+                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
+                  API Key / Key ID (`encrypted_key`)
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={formData.encrypted_key}
+                  onChange={(e) => setFormData({ ...formData, encrypted_key: e.target.value })}
+                  placeholder="rzp_test_..."
+                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
+                  API Secret / Key Secret (`encrypted_secret`) (Optional)
+                </label>
+                <input
+                  type="password"
+                  value={formData.encrypted_secret}
+                  onChange={(e) => setFormData({ ...formData, encrypted_secret: e.target.value })}
+                  placeholder="Razorpay Secret / Auth Secret..."
+                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
+                    Priority (1 = First Choice)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                  >
+                    <option value="active">Active</option>
+                    <option value="rate_limited">Rate Limited</option>
+                    <option value="failed">Failed</option>
+                    <option value="disabled">Disabled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#D8DEE2] flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 bg-[#f3f3f4] text-[#3f4947] font-mono-data rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#0b4f4a] hover:bg-[#003733] text-white font-mono-data font-semibold rounded"
+                >
+                  Save Credential
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function maskKey(keyStr) {
+  if (!keyStr) return '••••';
+  if (keyStr.length <= 8) return '••••••••';
+  return `${keyStr.slice(0, 7)}...****`;
+}
+
+

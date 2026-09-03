@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Precision Ledger - Support &amp; Documentation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#707977",
+                      "surface-tint": "#2c6862",
+                      "on-background": "#1a1c1c",
+                      "on-secondary-container": "#5f6365",
+                      "tertiary-container": "#633e00",
+                      "surface-dim": "#dadada",
+                      "on-primary-container": "#84bfb8",
+                      "inverse-on-surface": "#f0f1f1",
+                      "border-refined": "#D8DEE2",
+                      "panel-bg": "#EEF1F3",
+                      "primary-container": "#0b4f4a",
+                      "tertiary-fixed-dim": "#ffb958",
+                      "surface-container": "#eeeeee",
+                      "outline-variant": "#bfc8c6",
+                      "secondary-container": "#dde0e2",
+                      "on-surface-variant": "#3f4947",
+                      "surface-variant": "#e2e2e2",
+                      "secondary": "#5b5f61",
+                      "primary-fixed": "#b2eee7",
+                      "status-neutral": "#94A3B8",
+                      "on-tertiary-fixed-variant": "#643f00",
+                      "status-success": "#4C7A63",
+                      "on-tertiary-container": "#eba746",
+                      "tertiary-fixed": "#ffddb5",
+                      "inverse-surface": "#2f3131",
+                      "status-error": "#B23A2E",
+                      "on-tertiary-fixed": "#2a1800",
+                      "surface-container-high": "#e8e8e8",
+                      "on-primary-fixed": "#00201d",
+                      "on-error-container": "#93000a",
+                      "on-tertiary": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "on-primary-fixed-variant": "#0c4f4a",
+                      "background": "#f9f9f9",
+                      "surface-container-highest": "#e2e2e2",
+                      "on-surface": "#1a1c1c",
+                      "surface": "#f9f9f9",
+                      "surface-bright": "#f9f9f9",
+                      "on-secondary": "#ffffff",
+                      "on-secondary-fixed": "#181c1e",
+                      "secondary-fixed": "#e0e3e5",
+                      "inverse-primary": "#96d2cb",
+                      "primary": "#003733",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#434749",
+                      "surface-container-low": "#f3f3f4",
+                      "secondary-fixed-dim": "#c4c7c9",
+                      "tertiary": "#452a00",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "primary-fixed-dim": "#96d2cb"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "row-standard": "44px",
+                      "gutter": "16px",
+                      "container-padding": "24px",
+                      "card-internal": "20px",
+                      "unit": "4px",
+                      "row-condensed": "32px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Space Grotesk"
+                      ],
+                      "data-md": [
+                              "IBM Plex Mono"
+                      ],
+                      "data-lg": [
+                              "IBM Plex Mono"
+                      ],
+                      "data-sm": [
+                              "IBM Plex Mono"
+                      ],
+                      "body-md": [
+                              "IBM Plex Sans"
+                      ],
+                      "body-lg": [
+                              "IBM Plex Sans"
+                      ],
+                      "label-caps": [
+                              "IBM Plex Sans"
+                      ],
+                      "headline-sm": [
+                              "Space Grotesk"
+                      ],
+                      "body-sm": [
+                              "IBM Plex Sans"
+                      ],
+                      "headline-lg": [
+                              "Space Grotesk"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "data-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "data-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "data-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "11px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-sm": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "body-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen w-full flex overflow-hidden">
+<!-- Sidebar Component (Injected Image) -->
+<div class="h-screen w-64 flex-shrink-0 border-r border-border-refined bg-panel-bg flex flex-col hidden md:flex">
+<img alt="Sidebar Navigation" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN7BU2J4d09yisdl5iJOVoIE3yIyWnVF-bQLbusF0I3lZUN9rXxEwHgKCQ2rB6TIE3mFsU05H40GzzBZdn54uYZe9btS5JTVEnWIfA3zDaBVK8aQ8fK2WHCtVQcDZ19m3i4J5UGBtCppwL5dAf3P7AVgOQEDTRkdZLGmqobgH9bdiLdxnsJoAnUcmmunWuwo3k20MUGPNELfeLmWYa2ZmXqGQ01BzUkViGOAls_xk7UI2Dp60o65Plc2yXzCQzaNameA"/>
+</div>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-full overflow-hidden">
+<!-- TopAppBar Component -->
+<header class="bg-surface border-b border-border-refined flex justify-between items-center px-container-padding h-11 w-full flex-shrink-0">
+<div class="flex items-center gap-gutter">
+<span class="font-label-caps text-label-caps text-secondary">Payment Recovery</span>
+<span class="text-secondary">/</span>
+<span class="text-primary font-bold font-body-md text-body-md">Support &amp; Documentation</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-secondary hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded-DEFAULT p-1 flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-secondary hover:text-primary transition-colors focus:ring-1 focus:ring-primary rounded-DEFAULT p-1 flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-6 h-6 rounded-full bg-surface-variant overflow-hidden border border-border-refined">
+<img class="w-full h-full object-cover" data-alt="A small, professional headshot of a user profile in a corporate setting. The lighting is balanced and bright, fitting a modern light-mode interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQPfePJXLtyGvdpYzeb2OBhkRc22bq45lQDYn_Hayvu_xXCmmS1eC2nnBHKHPvY6oisoghiE3W_gWXodJmkzuTBWFzqJABJsVexxu7zu88ccyWfslkAget-Spywcj_n5tMhBqfkMFFZ9bi5DzsRwU7e9SHCm3pYPcFgSF8U8LkXnI8Ae6KrMcsEIXcg7kisjbU-14e61vjfjUKyN1FoyLJ7zPRy236NmwBxVxg61jbqPLAXgh2cCuk"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<main class="flex-1 overflow-y-auto p-container-padding md:p-8">
+<div class="max-w-7xl mx-auto space-y-8">
+<!-- Hero Search Section -->
+<section class="bg-panel-bg border border-border-refined rounded-DEFAULT p-8 relative overflow-hidden">
+<div class="relative z-10 max-w-2xl">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">How can we help you?</h1>
+<p class="font-body-md text-body-md text-secondary mb-6">Search our knowledge base, API documentation, or contact support.</p>
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-surface border border-border-refined rounded-DEFAULT font-body-md text-body-md focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors" placeholder="Search documentation, guides, and error codes..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Bento Grid Content -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Quick Links (API Docs) -->
+<div class="col-span-1 md:col-span-8 bg-surface border border-border-refined rounded-DEFAULT p-card-internal flex flex-col">
+<div class="flex items-center justify-between border-b border-border-refined pb-4 mb-4">
+<h2 class="font-headline-sm text-headline-sm text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">api</span>
+                                API Reference
+                            </h2>
+<a class="font-label-caps text-label-caps text-primary-container hover:underline" href="#">View All</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+<a class="group p-4 border border-border-refined rounded-DEFAULT hover:border-primary-container hover:bg-surface-container-lowest transition-all bg-panel-bg flex flex-col justify-between" href="#">
+<div>
+<h3 class="font-data-md text-data-md text-primary mb-1 group-hover:text-primary-container">Authentication</h3>
+<p class="font-body-sm text-body-sm text-secondary line-clamp-2">Learn how to securely authenticate requests to the Precision Ledger API using OAuth 2.0.</p>
+</div>
+<span class="material-symbols-outlined text-secondary mt-2 group-hover:text-primary-container self-end text-[18px]">arrow_forward</span>
+</a>
+<a class="group p-4 border border-border-refined rounded-DEFAULT hover:border-primary-container hover:bg-surface-container-lowest transition-all bg-panel-bg flex flex-col justify-between" href="#">
+<div>
+<h3 class="font-data-md text-data-md text-primary mb-1 group-hover:text-primary-container">Recovery Endpoints</h3>
+<p class="font-body-sm text-body-sm text-secondary line-clamp-2">Endpoints for initiating, tracking, and resolving payment recovery cases.</p>
+</div>
+<span class="material-symbols-outlined text-secondary mt-2 group-hover:text-primary-container self-end text-[18px]">arrow_forward</span>
+</a>
+<a class="group p-4 border border-border-refined rounded-DEFAULT hover:border-primary-container hover:bg-surface-container-lowest transition-all bg-panel-bg flex flex-col justify-between" href="#">
+<div>
+<h3 class="font-data-md text-data-md text-primary mb-1 group-hover:text-primary-container">Webhooks</h3>
+<p class="font-body-sm text-body-sm text-secondary line-clamp-2">Configure webhooks to receive real-time notifications about case status changes.</p>
+</div>
+<span class="material-symbols-outlined text-secondary mt-2 group-hover:text-primary-container self-end text-[18px]">arrow_forward</span>
+</a>
+<a class="group p-4 border border-border-refined rounded-DEFAULT hover:border-primary-container hover:bg-surface-container-lowest transition-all bg-panel-bg flex flex-col justify-between" href="#">
+<div>
+<h3 class="font-data-md text-data-md text-primary mb-1 group-hover:text-primary-container">Error Codes</h3>
+<p class="font-body-sm text-body-sm text-secondary line-clamp-2">A comprehensive list of API error codes and troubleshooting steps.</p>
+</div>
+<span class="material-symbols-outlined text-secondary mt-2 group-hover:text-primary-container self-end text-[18px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Technical Support -->
+<div class="col-span-1 md:col-span-4 bg-primary-container border border-primary-container rounded-DEFAULT p-card-internal text-on-primary flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-10 -top-10 opacity-10">
+<span class="material-symbols-outlined text-[120px]">support_agent</span>
+</div>
+<div class="relative z-10">
+<h2 class="font-headline-sm text-headline-sm mb-2 flex items-center gap-2 text-on-primary">
+<span class="material-symbols-outlined">support_agent</span>
+                                Technical Support
+                            </h2>
+<p class="font-body-sm text-body-sm text-on-primary-container mb-6">Need dedicated assistance? Our engineering support team is available 24/7 for critical escalation.</p>
+<ul class="space-y-4 mb-6">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]">mail</span>
+<div>
+<p class="font-label-caps text-label-caps text-on-primary-container">EMAIL SUPPORT</p>
+<p class="font-data-sm text-data-sm">support@precisionledger.com</p>
+</div>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]">call</span>
+<div>
+<p class="font-label-caps text-label-caps text-on-primary-container">PRIORITY HOTLINE</p>
+<p class="font-data-sm text-data-sm">+1 (800) 555-0199</p>
+</div>
+</li>
+</ul>
+</div>
+<button class="w-full py-2 bg-on-primary text-primary-container font-label-caps text-label-caps rounded-DEFAULT hover:bg-surface-container transition-colors relative z-10">
+                            OPEN A TICKET
+                        </button>
+</div>
+<!-- Knowledge Base -->
+<div class="col-span-1 md:col-span-12 bg-surface border border-border-refined rounded-DEFAULT p-card-internal">
+<h2 class="font-headline-sm text-headline-sm text-primary flex items-center gap-2 border-b border-border-refined pb-4 mb-4">
+<span class="material-symbols-outlined text-primary-container">library_books</span>
+                            Popular Guides
+                        </h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<article class="space-y-2">
+<span class="inline-block px-2 py-1 bg-surface-container-high text-primary font-label-caps text-[10px] rounded-DEFAULT">GETTING STARTED</span>
+<h3 class="font-body-lg text-body-lg text-primary font-medium hover:text-primary-container cursor-pointer transition-colors">Onboarding Guide for Operators</h3>
+<p class="font-body-sm text-body-sm text-secondary">A step-by-step walkthrough of the Precision Ledger interface, designed for new recovery operations staff.</p>
+</article>
+<article class="space-y-2">
+<span class="inline-block px-2 py-1 bg-surface-container-high text-primary font-label-caps text-[10px] rounded-DEFAULT">POLICY MANAGEMENT</span>
+<h3 class="font-body-lg text-body-lg text-primary font-medium hover:text-primary-container cursor-pointer transition-colors">Configuring Escalation Rules</h3>
+<p class="font-body-sm text-body-sm text-secondary">Learn how to set up automated escalation pathways based on transaction value and risk scoring.</p>
+</article>
+<article class="space-y-2">
+<span class="inline-block px-2 py-1 bg-surface-container-high text-primary font-label-caps text-[10px] rounded-DEFAULT">AUDIT &amp; COMPLIANCE</span>
+<h3 class="font-body-lg text-body-lg text-primary font-medium hover:text-primary-container cursor-pointer transition-colors">Exporting Compliance Reports</h3>
+<p class="font-body-sm text-body-sm text-secondary">Instructions on generating and exporting SOC2 compliant audit logs for your recovery workflows.</p>
+</article>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
