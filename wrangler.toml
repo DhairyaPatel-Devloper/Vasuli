@@ -6,3 +6,7 @@ compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
+[vars]
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_lNqad_Ws2o1tnOYmoj1SUw_PGfgMGKb"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lNqad_Ws2o1tnOYmoj1SUw_PGfgMGKb"
+NEXT_PUBLIC_SUPABASE_URL = "https://ssshxstanlfvzncmxjjt.supabase.co"
