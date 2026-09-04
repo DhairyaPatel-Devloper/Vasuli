@@ -219,8 +219,25 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
                 Execute
               </button>
             </div>
-            <div className="font-mono-data font-semibold text-sm text-[#0b4f4a]">
-              {leak.chosen_action ? leak.chosen_action.toUpperCase().replace(/_/g, ' ') : 'Pending Decision'}
+            <div className="font-mono-data font-semibold text-sm text-[#0b4f4a] flex items-center justify-between gap-2 mt-1">
+              <span>{leak.chosen_action ? leak.chosen_action.toUpperCase().replace(/_/g, ' ') : 'Pending Decision'}</span>
+              <select
+                className="text-[11px] font-mono-data border border-[#D8DEE2] rounded px-1.5 py-0.5 bg-[#f9f9f9] text-[#1a1c1c]"
+                value={leak.chosen_action || ''}
+                onChange={async (e) => {
+                  const newAction = e.target.value;
+                  if (!newAction || !leak.id) return;
+                  const supabase = getSupabaseBrowserClient();
+                  await supabase.from('leaks').update({ chosen_action: newAction }).eq('id', leak.id);
+                  if (onRefresh) onRefresh();
+                }}
+              >
+                <option value="" disabled>Select Action</option>
+                <option value="initiate_call">INITIATE CALL (Voice Agent)</option>
+                <option value="retry_now">RETRY NOW</option>
+                <option value="send_payment_link">SEND PAYMENT LINK</option>
+                <option value="notify_customer">NOTIFY CUSTOMER (WhatsApp)</option>
+              </select>
             </div>
             <p className="text-[11px] text-[#94A3B8] mt-1">Guarded by Policy Engine</p>
           </div>

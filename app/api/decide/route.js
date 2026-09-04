@@ -34,8 +34,8 @@ export async function POST(request) {
 
     let chosenAction = null;
 
-    // Check initiate_call priority rule FIRST
-    if (isHighValue && priorActedCount >= 2 && leak.status !== 'resolved') {
+    // Check initiate_call priority rule (High value with repeated retries or medium EV/customer error)
+    if ((isHighValue && priorActedCount >= 1 && leak.status !== 'resolved') || (leak.root_cause === 'customer_error')) {
       chosenAction = 'initiate_call';
     } else {
       // Calculate EV score & fallback to standard EV logic
@@ -47,12 +47,12 @@ export async function POST(request) {
 
       const evScore = Math.round(probability * 100);
 
-      if (evScore > 80) {
+      if (evScore > 85) {
         chosenAction = 'retry_now';
-      } else if (evScore > 60) {
-        chosenAction = 'send_payment_link';
+      } else if (evScore > 65) {
+        chosenAction = 'initiate_call';
       } else if (evScore > 40) {
-        chosenAction = 'retry_scheduled';
+        chosenAction = 'send_payment_link';
       } else if (evScore > 20) {
         chosenAction = 'notify_customer';
       } else {
