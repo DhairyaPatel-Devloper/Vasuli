@@ -1,13 +1,16 @@
+// app/api/webhooks/razorpay/route.js
+// Razorpay Failure Ingestion Webhook — Sets up leaks for Sarvam Voice Agent Recovery
+
 import { NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    
+
     const payload = body.payload?.payment?.entity || body;
     const razorpayPaymentId = payload.id || `pay_${Math.random().toString(36).substring(2, 9)}`;
-    const amount = (payload.amount ? payload.amount / 100 : body.amount) || 14999;
+    const amount = (payload.amount ? payload.amount / 100 : body.amount) || 23424;
     const currency = payload.currency || 'INR';
 
     // Map source to allowed DB check constraint values: 'payment_failed', 'checkout_abandoned', 'subscription_failed'
@@ -16,20 +19,28 @@ export async function POST(request) {
     if (eventType.includes('checkout')) dbSource = 'checkout_abandoned';
     if (eventType.includes('subscription')) dbSource = 'subscription_failed';
 
+    // Target Phone: strictly default to +919104898224
+    const customerPhone = payload.contact || body.contact || payload.phone || '+919104898224';
+    const customerName = payload.notes?.customer_name || payload.email?.split('@')[0] || 'Valued Customer';
+    const gender = payload.notes?.gender || 'male';
+
     const supabase = getSupabaseServerClient();
 
-    // 1. Insert new leak into database
+    // 1. Insert new leak with default voice recovery action
     const { data: leak, error: leakError } = await supabase
       .from('leaks')
       .insert([
         {
           razorpay_payment_id: razorpayPaymentId,
-          amount: amount,
-          currency: currency,
+          amount,
+          currency,
+          customer_phone: customerPhone,
+          customer_name: customerName,
           source: dbSource,
           detected_at: new Date().toISOString(),
           status: 'open',
           root_cause: 'unknown',
+          chosen_action: 'initiate_call',
         },
       ])
       .select()
@@ -40,22 +51,29 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: leakError.message }, { status: 500 });
     }
 
-    // 2. Insert audit log record (event_type check constraint: 'detected')
+    // 2. Insert audit log record (event_type: 'detected')
     await supabase.from('audit_log').insert([
       {
         leak_id: leak.id,
         event_timestamp: new Date().toISOString(),
         event_type: 'detected',
-        detail: `Razorpay failure ingested: Payment ${razorpayPaymentId}, Amount: ₹${amount}, Source: ${dbSource}`,
+        detail: `Razorpay failure ingested: Payment ${razorpayPaymentId}, Amount: ₹${amount}, Target Mobile: ${customerPhone}, Action: initiate_call`,
         outcome: 'Status set to open',
       },
     ]);
 
     return NextResponse.json({
       success: true,
-      message: 'Razorpay webhook failure ingested successfully',
+      message: 'Razorpay payment failure ingested for Sarvam Voice Agent recovery',
       leakId: leak.id,
       razorpayPaymentId,
+      customerPhone,
+      variables: {
+        amount: String(amount),
+        customer_name: customerName,
+        gender,
+        razorpay_payment_id: razorpayPaymentId,
+      },
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

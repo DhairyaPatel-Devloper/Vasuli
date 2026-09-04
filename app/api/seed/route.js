@@ -53,6 +53,12 @@ export async function POST() {
       );
     }
 
+    // Clean up any legacy credential provider names in DB
+    await supabase
+      .from('api_credentials')
+      .update({ provider_name: 'Sarvam AI Agent (+918064266222)' })
+      .ilike('provider_name', '%gemini%');
+
     if (!existingCreds || existingCreds.length === 0) {
       const sampleCredentials = [
         {
@@ -66,9 +72,9 @@ export async function POST() {
         },
         {
           category: 'llm_reasoning',
-          provider_name: 'Google Gemini Flash',
-          account_email: 'ai@company.com',
-          encrypted_key: 'AIzaSy_placeholder',
+          provider_name: 'Sarvam AI Agent (Reasoning & Voice)',
+          account_email: 'agent@company.com',
+          encrypted_key: 'sarvam_placeholder',
           priority: 1,
           status: 'active',
         },
@@ -82,9 +88,18 @@ export async function POST() {
         },
         {
           category: 'whatsapp',
-          provider_name: 'Twilio WhatsApp',
-          account_email: 'sms@company.com',
-          encrypted_key: 'AC_placeholder',
+          provider_name: 'Sarvam AI Notifications (+918064266222)',
+          account_email: 'notifications@company.com',
+          encrypted_key: 'sarvam_placeholder',
+          priority: 1,
+          status: 'active',
+        },
+        {
+          category: 'voice_call',
+          provider_name: 'Sarvam AI Voice Agent (+918064266222)',
+          account_email: 'agent@company.com',
+          encrypted_key: 'sarvam_placeholder',
+          encrypted_secret: 'sarvam_org_placeholder',
           priority: 1,
           status: 'active',
         },
@@ -100,6 +115,12 @@ export async function POST() {
           { status: 500 }
         );
       }
+    } else {
+      // Reset any failed credentials back to active on seed re-run
+      await supabase
+        .from('api_credentials')
+        .update({ status: 'active', last_error: null })
+        .eq('status', 'failed');
     }
 
     // ── 3. leaks ─────────────────────────────────────────────────────────────
@@ -113,10 +134,12 @@ export async function POST() {
         amount: 14999.0,
         currency: 'INR',
         source: 'payment_failed',
+        customer_phone: '+919104898224',
+        customer_name: 'Dhairya Patel',
         detected_at: new Date().toISOString(),
         root_cause: 'bank_decline_soft',
         ev_score: 88.0,
-        chosen_action: 'retry_now',
+        chosen_action: 'initiate_call',
         status: 'resolved',
       },
       {
@@ -124,10 +147,12 @@ export async function POST() {
         amount: 29999.0,
         currency: 'INR',
         source: 'subscription_failed',
+        customer_phone: '+919104898224',
+        customer_name: 'Rahul Sharma',
         detected_at: new Date(Date.now() - 3_600_000).toISOString(),
         root_cause: 'customer_error',
         ev_score: 65.0,
-        chosen_action: 'send_payment_link',
+        chosen_action: 'initiate_call',
         status: 'action_taken',
       },
       {
@@ -135,10 +160,12 @@ export async function POST() {
         amount: 8500.0,
         currency: 'INR',
         source: 'checkout_abandoned',
+        customer_phone: '+919104898224',
+        customer_name: 'Ananya Verma',
         detected_at: new Date(Date.now() - 7_200_000).toISOString(),
         root_cause: 'technical_hard_decline',
         ev_score: 30.0,
-        chosen_action: 'no_action',
+        chosen_action: 'initiate_call',
         status: 'needs_manual_diagnosis',
       },
       {
@@ -146,10 +173,12 @@ export async function POST() {
         amount: 49999.0,
         currency: 'INR',
         source: 'payment_failed',
+        customer_phone: '+919104898224',
+        customer_name: 'Vikram Singh',
         detected_at: new Date(Date.now() - 14_400_000).toISOString(),
         root_cause: 'bank_decline_soft',
         ev_score: 92.0,
-        chosen_action: 'retry_now',
+        chosen_action: 'initiate_call',
         status: 'open',
       },
       {
@@ -157,10 +186,12 @@ export async function POST() {
         amount: 5999.0,
         currency: 'INR',
         source: 'checkout_abandoned',
+        customer_phone: '+919104898224',
+        customer_name: 'Pooja Iyer',
         detected_at: new Date(Date.now() - 21_600_000).toISOString(),
         root_cause: 'bank_decline_soft',
         ev_score: 72.0,
-        chosen_action: 'send_payment_link',
+        chosen_action: 'initiate_call',
         status: 'escalated',
       },
     ];

@@ -182,7 +182,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-[#D8DEE2] flex items-center justify-between text-xs font-mono-data text-[#3f4947]">
-              <span>Powered by Gemini 1.5 + EV Engine</span>
+              <span>Powered by Sarvam AI + EV Engine</span>
               <span className="text-[#4C7A63] font-semibold">Zero Rule Collisions</span>
             </div>
           </div>

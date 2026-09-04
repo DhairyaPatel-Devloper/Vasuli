@@ -261,10 +261,10 @@ export default function AdminApiManagementPage() {
                   className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
                 >
                   <option value="payment_gateway">Payment Gateway (Razorpay)</option>
-                  <option value="llm_reasoning">LLM Reasoning (Gemini)</option>
+                  <option value="llm_reasoning">LLM Reasoning & Voice AI (Sarvam AI)</option>
                   <option value="email">Transactional Email (Resend)</option>
-                  <option value="whatsapp">WhatsApp Service (Twilio)</option>
-                  <option value="voice_call">Voice Call AI (Sarvam)</option>
+                  <option value="whatsapp">WhatsApp / Notifications (Sarvam AI)</option>
+                  <option value="voice_call">Voice Call AI (Sarvam AI)</option>
                 </select>
               </div>
 

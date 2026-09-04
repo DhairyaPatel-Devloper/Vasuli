@@ -36,8 +36,13 @@ export default function AdminCasesPage() {
         setCases([]);
       } else {
         setCases(data || []);
-        if (data && data.length > 0 && !selectedCase) {
-          setSelectedCase(data[0]);
+        if (data && data.length > 0) {
+          if (!selectedCase) {
+            setSelectedCase(data[0]);
+          } else {
+            const updated = data.find((c) => c.id === selectedCase.id);
+            if (updated) setSelectedCase(updated);
+          }
         }
       }
     } catch (err) {

@@ -1,3 +1,6 @@
+// app/api/decide/route.js
+// EV Decision Engine — Routes all recovery cases to Sarvam AI Voice Agent
+
 import { NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
@@ -19,57 +22,20 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Leak not found' }, { status: 404 });
     }
 
-    // High Value + Repeated Failures rule for initiate_call
-    const HIGH_VALUE_THRESHOLD = 5000;
-
-    // Count prior failed automated attempts (event_type = 'acted')
-    const { data: actedLogs } = await supabase
-      .from('audit_log')
-      .select('id')
-      .eq('leak_id', leakId)
-      .eq('event_type', 'acted');
-
-    const priorActedCount = actedLogs ? actedLogs.length : 0;
-    const isHighValue = Number(leak.amount) >= HIGH_VALUE_THRESHOLD;
-
-    let chosenAction = null;
-
-    // Check initiate_call priority rule (High value with repeated retries or medium EV/customer error)
-    if ((isHighValue && priorActedCount >= 1 && leak.status !== 'resolved') || (leak.root_cause === 'customer_error')) {
-      chosenAction = 'initiate_call';
-    } else {
-      // Calculate EV score & fallback to standard EV logic
-      const cause = leak.root_cause || 'unknown';
-      let probability = 0.75;
-      if (cause === 'bank_decline_soft') probability = 0.88;
-      if (cause === 'customer_error') probability = 0.65;
-      if (cause === 'technical_hard_decline') probability = 0.20;
-
-      const evScore = Math.round(probability * 100);
-
-      if (evScore > 85) {
-        chosenAction = 'retry_now';
-      } else if (evScore > 65) {
-        chosenAction = 'initiate_call';
-      } else if (evScore > 40) {
-        chosenAction = 'send_payment_link';
-      } else if (evScore > 20) {
-        chosenAction = 'notify_customer';
-      } else {
-        chosenAction = 'no_action';
-      }
-    }
-
+    // Voice Agent is the single dedicated recovery channel
+    const chosenAction = 'initiate_call';
     const cause = leak.root_cause || 'unknown';
-    let probability = 0.75;
+
+    // Calculate Expected Value (EV) recovery score (0 - 100)
+    let probability = 0.80;
     if (cause === 'bank_decline_soft') probability = 0.88;
-    if (cause === 'customer_error') probability = 0.65;
-    if (cause === 'technical_hard_decline') probability = 0.20;
+    if (cause === 'customer_error') probability = 0.80;
+    if (cause === 'technical_hard_decline') probability = 0.40;
     const evScore = Math.round(probability * 100);
 
-    const newStatus = chosenAction === 'no_action' ? 'needs_manual_diagnosis' : 'open';
+    const newStatus = 'open';
 
-    // Update leak record
+    // Update leak record with chosen voice recovery action
     await supabase
       .from('leaks')
       .update({
@@ -79,7 +45,7 @@ export async function POST(request) {
       })
       .eq('id', leakId);
 
-    // Record audit log (event_type: 'decided')
+    // Record audit log event (event_type: 'decided')
     await supabase.from('audit_log').insert([
       {
         leak_id: leakId,
@@ -90,12 +56,31 @@ export async function POST(request) {
       },
     ]);
 
+    // Automatically trigger Sarvam Voice Agent outbound dispatch via /api/act
+    let actionExecuted = false;
+    let actionOutcome = null;
+    try {
+      const origin = new URL(request.url).origin;
+      const actRes = await fetch(`${origin}/api/act`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leakId, action: 'initiate_call' }),
+      });
+      const actData = await actRes.json();
+      actionExecuted = actData.success;
+      actionOutcome = actData.outcome || actData.message;
+    } catch (actErr) {
+      console.warn('[decide] Auto-dispatch act failed:', actErr.message);
+    }
+
     return NextResponse.json({
       success: true,
       leakId,
       evScore,
       chosenAction,
       status: newStatus,
+      actionExecuted,
+      actionOutcome,
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

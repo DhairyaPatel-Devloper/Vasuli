@@ -11,7 +11,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@google/genai": "^2.21.0",
     "@opennextjs/cloudflare": "^1.20.6",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.113.0",
@@ -20,8 +19,8 @@
     "next": "^15.5.24",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.4.0",
-    "twilio": "^6.1.0"
+    "sarvamai": "^1.1.9",
+    "tailwind-merge": "^2.4.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",

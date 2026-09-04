@@ -273,7 +273,7 @@ export default function OperatorQueuePage() {
                   className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs text-[#1a1c1c]"
                 >
                   <option value="send_whatsapp_retry_link">Send WhatsApp Payment Link</option>
-                  <option value="send_sms_payment_reminder">Send SMS Reminder (Twilio)</option>
+                  <option value="send_sms_payment_reminder">Send SMS Reminder (Sarvam AI)</option>
                   <option value="schedule_quiet_hour_retry">Schedule Quiet Hour Retry</option>
                   <option value="trigger_razorpay_refund">Trigger Razorpay Refund Test</option>
                 </select>

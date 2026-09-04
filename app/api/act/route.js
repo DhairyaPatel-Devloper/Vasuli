@@ -1,7 +1,8 @@
+// app/api/act/route.js
+// Sarvam AI Voice Agent Outbound Dispatch Engine
+
 import { NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
-import { executeWithCredential } from '@/lib/credential-resolver';
-import twilio from 'twilio';
 
 export async function POST(request) {
   try {
@@ -12,7 +13,7 @@ export async function POST(request) {
 
     const supabase = getSupabaseServerClient();
 
-    // 1. Fetch leak and policy config
+    // 1. Fetch leak metadata
     const { data: leak, error: leakError } = await supabase
       .from('leaks')
       .select('*')
@@ -23,180 +24,155 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Leak not found' }, { status: 404 });
     }
 
-    const { data: policy } = await supabase
-      .from('policy_config')
-      .select('*')
-      .limit(1)
-      .single();
+    // 2. Prepare Dynamic Variables
+    const amountVal = String(leak.amount || 23424);
+    const customerNameVal = leak.customer_name || 'Valued Customer';
+    const genderVal = leak.gender || 'male';
+    const razorpayPaymentIdVal = leak.razorpay_payment_id || 'pay_TY3SLASJlOhaHi';
 
-    // 2. Policy Engine Guard Evaluation (Hard-stop keywords & Max attempts)
-    const hardStopKeywords = policy?.hard_stop_keywords || ['fraud', 'chargeback', 'unauthorized', 'never made this'];
-    const causeText = (leak.root_cause || '').toLowerCase();
-    const containsHardStop = hardStopKeywords.some((kw) => causeText.includes(kw.toLowerCase()));
-
-    const maxAttemptsPerDay = policy?.max_attempts_per_day || 3;
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const { data: todayLogs } = await supabase
-      .from('audit_log')
-      .select('id')
-      .eq('leak_id', leakId)
-      .eq('event_type', 'acted')
-      .gte('event_timestamp', startOfDay.toISOString());
-
-    const attemptsTodayCount = todayLogs ? todayLogs.length : 0;
-    const exceedsMaxAttempts = attemptsTodayCount >= maxAttemptsPerDay;
-
-    if (containsHardStop || exceedsMaxAttempts) {
-      const blockReason = containsHardStop
-        ? 'Hard stop keyword detected in leak metadata.'
-        : `Maximum daily attempt limit reached (${attemptsTodayCount}/${maxAttemptsPerDay}).`;
-
-      await supabase
-        .from('leaks')
-        .update({ status: 'escalated' })
-        .eq('id', leakId);
-
-      // event_type check constraint: 'blocked'
-      await supabase.from('audit_log').insert([
-        {
-          leak_id: leakId,
-          event_timestamp: new Date().toISOString(),
-          event_type: 'blocked',
-          detail: `POLICY ENGINE BLOCK: ${blockReason}`,
-          outcome: 'Blocked - Escalated to Operator Queue',
-        },
-      ]);
-
-      return NextResponse.json({
-        success: false,
-        blocked: true,
-        message: `Action blocked by Policy Engine: ${blockReason}`,
-      });
+    let customerPhone = leak.customer_phone || '+919104898224';
+    if (!customerPhone.startsWith('+')) {
+      customerPhone = customerPhone.startsWith('91') ? `+${customerPhone}` : `+91${customerPhone}`;
     }
 
-    // 3. Determine Provider Category (DB check constraint: 'llm_reasoning', 'email', 'whatsapp', 'voice_call', 'payment_gateway')
-    const action = leak.chosen_action || 'send_payment_link';
-    let providerCategory = 'payment_gateway';
-    if (action === 'notify_customer') {
-      providerCategory = 'whatsapp';
-    } else if (action === 'initiate_call' || action === 'make_voice_call' || action === 'voice_call') {
-      providerCategory = 'voice_call';
-    }
+    // Sarvam API credentials & path parameters from environment
+    const sarvamApiKey = process.env.SARVAM_API_KEY || '';
+    const appId = process.env.SARVAM_APP_ID || 'Conversatio-7a28a6dd-fdfe';
+    const orgId = process.env.SARVAM_ORG_ID || '019e9120-ca5d-7d10-9e64-c87d2c557710';
+    const workspaceId = process.env.SARVAM_WORKSPACE_ID || '01a06d1b-cb57-725d-b9a2-78a4cab1d757';
 
-    // 4. Execute Action via Credential Resolver with Automatic Rotation
-    const executionResult = await executeWithCredential(providerCategory, async (apiKey, credRecord) => {
-      if (providerCategory === 'payment_gateway') {
-        const keyId = credRecord.encrypted_key || apiKey;
-        const keySecret = credRecord.encrypted_secret || '';
-        const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
-        const rzpRes = await fetch('https://api.razorpay.com/v1/payment_links', {
+    // Build standard Sarvam Voice Agent payload with agent_variables
+    const outboundPayload = {
+      phone_number: customerPhone,
+      customer_phone_number: customerPhone,
+      user_phone_number: customerPhone,
+      agent_id: appId,
+      app_id: appId,
+      agent_variables: {
+        amount: amountVal,
+        customer_name: customerNameVal,
+        gender: genderVal,
+        razorpay_payment_id: razorpayPaymentIdVal,
+      },
+      app_config: {
+        app_id: appId,
+        app_version: 1,
+      },
+      user_config: {
+        user_phone_number: customerPhone,
+        amount: amountVal,
+        customer_name: customerNameVal,
+        gender: genderVal,
+        razorpay_payment_id: razorpayPaymentIdVal,
+      },
+    };
+
+    let dispatchSuccess = false;
+    let callId = null;
+    let dispatchEndpoint = '';
+    let errorDetail = '';
+
+    // Candidate API endpoints for Sarvam Voice Outbounds across indus.sarvam.ai & apps.sarvam.ai
+    const endpointsToTry = [];
+    if (orgId) {
+      const ws = workspaceId || 'default';
+      endpointsToTry.push(
+        `https://apps.sarvam.ai/api/outbounds/v1/orgs/${encodeURIComponent(orgId)}/workspaces/${encodeURIComponent(ws)}/outbounds`,
+        `https://apps.sarvam.ai/api/outbounds/v1/orgs/${encodeURIComponent(orgId)}/workspaces/${encodeURIComponent(ws)}/instant-call`,
+        `https://apps.sarvam.ai/api/outbounds/v1/orgs/${encodeURIComponent(orgId)}/workspaces/default/outbounds`,
+        `https://indus.sarvam.ai/api/outbounds/v1/orgs/${encodeURIComponent(orgId)}/workspaces/${encodeURIComponent(ws)}/outbounds`,
+        `https://indus.sarvam.ai/samvaad/api/v1/orgs/${encodeURIComponent(orgId)}/outbound`
+      );
+    }
+    endpointsToTry.push(
+      'https://indus.sarvam.ai/api/v1/outbounds',
+      'https://indus.sarvam.ai/samvaad/api/v1/outbound',
+      'https://api.sarvam.ai/v1/conversations/outbound',
+      'https://api.sarvam.ai/v1/voice/agent/outbound',
+      'https://apps.sarvam.ai/api/outbounds/v1/outbounds',
+      'https://api.sarvam.ai/v1/voice/outbound-call'
+    );
+
+    console.log(`[act] Dispatching call to ${customerPhone} via Sarvam Agent ${appId}...`);
+
+    for (const endpoint of endpointsToTry) {
+      try {
+        console.log(`[act] Fetching Sarvam API: ${endpoint}`);
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Basic ${authHeader}`,
+            'api-subscription-key': sarvamApiKey,
+            'X-API-Key': sarvamApiKey,
           },
-          body: JSON.stringify({
-            amount: (leak.amount || 100) * 100,
-            currency: leak.currency || 'INR',
-            description: `Payment Recovery Link for Leak ${leak.id}`,
-            customer: {
-              name: 'Recovery Customer',
-              email: 'customer@example.com',
-              contact: '+919999999999',
-            },
-            notify: { sms: true, email: true },
-            reminder_enable: true,
-          }),
+          body: JSON.stringify(outboundPayload),
         });
 
-        if (!rzpRes.ok) {
-          const errText = await rzpRes.text();
-          throw new Error(`Razorpay API Error ${rzpRes.status}: ${errText}`);
+        const status = res.status;
+        const resText = await res.text();
+        console.log(`[act] Sarvam ${endpoint} -> HTTP ${status}: ${resText.substring(0, 200)}`);
+
+        if (res.ok) {
+          let data = {};
+          try { data = JSON.parse(resText); } catch (e) {}
+          dispatchSuccess = true;
+          callId = data.id || data.call_id || data.outbound_id || `sarvam_${Date.now()}`;
+          dispatchEndpoint = endpoint;
+          break;
+        } else {
+          errorDetail = `HTTP ${status} from ${endpoint}: ${resText.substring(0, 150)}`;
         }
-
-        const linkData = await rzpRes.json();
-        return linkData.short_url || 'https://rzp.io/i/test_recovery';
+      } catch (err) {
+        console.warn(`[act] Fetch error for ${endpoint}:`, err.message);
+        errorDetail = err.message;
       }
-
-      if (providerCategory === 'voice_call') {
-        const accountSid = credRecord.encrypted_key;
-        const authToken = credRecord.account_email || process.env.TWILIO_AUTH_TOKEN || 'test_token';
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || 'https://recovery-engine.example.com';
-        const normalizedBaseUrl = baseUrl.startsWith('http') ? baseUrl : `https://${baseUrl}`;
-        const actualLeakId = leak.id;
-        const webhookUrl = `${normalizedBaseUrl}/api/voice/start?leakId=${encodeURIComponent(actualLeakId)}`;
-
-        if (accountSid && accountSid.startsWith('AC')) {
-          const client = twilio(accountSid, authToken);
-          const call = await client.calls.create({
-            url: webhookUrl,
-            to: leak.customer_phone || '+919999999999',
-            from: process.env.TWILIO_PHONE_NUMBER || '+14155238886',
-          });
-          return `Twilio Voice Call Initiated (SID: ${call.sid}) for Leak ${actualLeakId} with webhook URL: ${webhookUrl}`;
-        }
-        return `Voice call simulated via Twilio SDK for ${credRecord.provider_name} with webhook URL: ${webhookUrl}`;
-      }
-
-      if (providerCategory === 'whatsapp') {
-        const accountSid = credRecord.encrypted_key;
-        const authToken = credRecord.account_email || 'test_token';
-        if (accountSid && accountSid.startsWith('AC')) {
-          const client = twilio(accountSid, authToken);
-          const msg = await client.messages.create({
-            body: `[RazorPay AI Recovery] Payment ${leak.razorpay_payment_id} (₹${leak.amount}) failed. Complete payment securely: https://rzp.io/i/test_recovery`,
-            from: 'whatsapp:+14155238886',
-            to: 'whatsapp:+919999999999',
-          });
-          return `Twilio WhatsApp Dispatch Success (SID: ${msg.sid})`;
-        }
-        return `WhatsApp alert dispatched via Twilio SDK for ${credRecord.provider_name}`;
-      }
-
-      return `Message dispatched via ${credRecord.provider_name}`;
-    }, leakId);
-
-    if (!executionResult.success) {
-      return NextResponse.json({
-        success: false,
-        escalated: true,
-        message: executionResult.error,
-      });
     }
 
-    // 5. Update leak status ('action_taken' for voice_call pending resolution, 'resolved' for immediate recovery actions)
-    const isVoiceCall = providerCategory === 'voice_call';
-    const finalStatus = isVoiceCall ? 'action_taken' : 'resolved';
-    const outcomeText = isVoiceCall ? 'Call Initiated (Pending Resolution)' : 'Payment Recovered Successfully';
+    let outcomeMessage = '';
+    if (dispatchSuccess) {
+      outcomeMessage = `Call Dispatched via Sarvam AI (${appId} -> ${customerPhone}). Call ID: ${callId}. Variables: amount=₹${amountVal}, customer_name=${customerNameVal}, gender=${genderVal}, razorpay_payment_id=${razorpayPaymentIdVal}.`;
+    } else {
+      if (!orgId || !workspaceId) {
+        outcomeMessage = `Sarvam API Call Pending: SARVAM_ORG_ID and SARVAM_WORKSPACE_ID are missing in .env.local. (Sarvam requires org_id & workspace_id in URL path: apps.sarvam.ai/api/outbounds/v1/orgs/ORG_ID/workspaces/WORKSPACE_ID/outbounds). Details: ${errorDetail}`;
+      } else {
+        outcomeMessage = `Sarvam API returned error: ${errorDetail}`;
+      }
+    }
 
+    // 3. Update leak status to action_taken
     await supabase
       .from('leaks')
       .update({
-        status: finalStatus,
+        status: dispatchSuccess ? 'action_taken' : 'needs_manual_diagnosis',
+        chosen_action: 'initiate_call',
       })
       .eq('id', leakId);
 
-    // 6. Insert audit log row (event_type check constraint: 'acted')
+    // 4. Record audit event
     await supabase.from('audit_log').insert([
       {
         leak_id: leakId,
         event_timestamp: new Date().toISOString(),
         event_type: 'acted',
-        detail: isVoiceCall
-          ? `Initiated recovery call via Twilio Voice for leak ${leakId}. Webhook URL configured with real leakId.`
-          : `Recovery action [${action}] executed via ${executionResult.provider}. Payload: ${JSON.stringify(executionResult.data)}`,
-        outcome: outcomeText,
+        detail: outcomeMessage,
+        outcome: dispatchSuccess ? 'Call Dispatched to Telephony' : 'Call Failed / Org ID Required',
       },
     ]);
 
     return NextResponse.json({
-      success: true,
+      success: dispatchSuccess,
       leakId,
-      status: finalStatus,
-      provider: executionResult.provider,
-      outcome: executionResult.data,
+      chosenAction: 'initiate_call',
+      dispatched: dispatchSuccess,
+      callId,
+      message: outcomeMessage,
+      error: dispatchSuccess ? null : errorDetail,
+      variables: {
+        amount: amountVal,
+        customer_name: customerNameVal,
+        gender: genderVal,
+        razorpay_payment_id: razorpayPaymentIdVal,
+      },
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

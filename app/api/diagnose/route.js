@@ -1,6 +1,8 @@
+// app/api/diagnose/route.js
+// Payment Failure Root Cause Diagnosis (Zero-LLM Metadata Engine)
+
 import { NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
-import { executeWithCredential } from '@/lib/credential-resolver';
 
 export async function POST(request) {
   try {
@@ -20,51 +22,25 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Leak not found' }, { status: 404 });
     }
 
-    // Category allowed by DB constraint: 'llm_reasoning'
-    const diagnosisResult = await executeWithCredential('llm_reasoning', async (apiKey, cred) => {
-      const prompt = `Analyze Razorpay payment failure for payment ${leak.razorpay_payment_id}, amount ${leak.amount} ${leak.currency}. Classify as bank_decline_soft, technical_hard_decline, or customer_error.`;
-      
-      if (apiKey && apiKey.startsWith('AIza')) {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        });
+    // Determine root cause directly from payment failure signals (No LLM dependency)
+    // Allowed values matching DB constraint: 'bank_decline_soft', 'technical_hard_decline', 'customer_error'
+    let rootCause = 'bank_decline_soft';
+    const source = (leak.source || '').toLowerCase();
+    const amount = Number(leak.amount || 0);
+    const paymentId = (leak.razorpay_payment_id || '').toLowerCase();
 
-        if (!response.ok) {
-          throw new Error(`Gemini API HTTP Error ${response.status}: ${await response.text()}`);
-        }
-
-        const resData = await response.json();
-        const text = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        if (text.includes('bank_decline') || text.includes('soft')) return 'bank_decline_soft';
-        if (text.includes('technical') || text.includes('hard')) return 'technical_hard_decline';
-        if (text.includes('customer') || text.includes('error')) return 'customer_error';
-        return 'bank_decline_soft';
-      }
-
-      return 'bank_decline_soft';
-    }, leakId);
-
-    if (!diagnosisResult.success) {
-      return NextResponse.json({
-        success: false,
-        escalated: true,
-        error: diagnosisResult.error,
-      });
+    if (source === 'checkout_abandoned' || amount > 40000) {
+      rootCause = 'customer_error';
+    } else if (paymentId.includes('tech') || paymentId.includes('err') || leak.currency !== 'INR') {
+      rootCause = 'technical_hard_decline';
+    } else {
+      rootCause = 'bank_decline_soft';
     }
-
-    // Value must match DB check constraint: 'bank_decline_soft', 'technical_hard_decline', 'customer_error', 'unknown'
-    const rootCauseEnum = diagnosisResult.data || 'bank_decline_soft';
 
     // Update leak record
     await supabase
       .from('leaks')
-      .update({
-        root_cause: rootCauseEnum,
-      })
+      .update({ root_cause: rootCause })
       .eq('id', leakId);
 
     // Record audit log (event_type: 'diagnosed')
@@ -73,16 +49,16 @@ export async function POST(request) {
         leak_id: leakId,
         event_timestamp: new Date().toISOString(),
         event_type: 'diagnosed',
-        detail: `AI Root Cause Diagnosis completed via provider [${diagnosisResult.provider}]: Classified as ${rootCauseEnum}`,
-        outcome: `Root Cause set to ${rootCauseEnum}`,
+        detail: `Payment Failure Diagnosis: Classified as ${rootCause} based on transaction metadata.`,
+        outcome: `Root Cause set to ${rootCause}`,
       },
     ]);
 
     return NextResponse.json({
       success: true,
       leakId,
-      rootCause: rootCauseEnum,
-      provider: diagnosisResult.provider,
+      rootCause,
+      method: 'metadata_engine',
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
