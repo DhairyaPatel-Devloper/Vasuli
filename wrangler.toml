@@ -1,5 +1,5 @@
 main = ".open-next/worker.js"
-name = "payment-recovery-engine"
+name = "vasuli"
 compatibility_date = "2026-09-03"
 compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
 
