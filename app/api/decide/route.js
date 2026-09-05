@@ -37,9 +37,11 @@ Leak Metadata:
 - Root Cause: ${cause}
 - Source: ${leak.source || 'unknown'}
 
-Calculate EV score (integer 0 to 100) and confirm action 'initiate_call'.
+Calculate EV score (integer 0 to 100) and choose the best recovery action: 'initiate_call' or 'send_email'.
+- Choose 'send_email' for soft declines, customer errors, or lower amounts (< 1000).
+- Choose 'initiate_call' for high urgency or high value payment failures.
 Respond ONLY in JSON:
-{"ev_score": number, "chosen_action": "initiate_call"}`;
+{"ev_score": number, "chosen_action": "initiate_call" | "send_email"}`;
 
         const response = await client.chat.completions({
           model: 'sarvam-105b',
@@ -48,18 +50,22 @@ Respond ONLY in JSON:
 
         const rawContent = response.choices?.[0]?.message?.content || '';
         let evScore = 80;
-        if (cause === 'bank_decline_soft') evScore = 88;
-        if (cause === 'customer_error') evScore = 80;
-        if (cause === 'technical_hard_decline') evScore = 40;
+        let chosenAction = 'initiate_call';
+        if (cause === 'bank_decline_soft') { evScore = 88; chosenAction = 'send_email'; }
+        if (cause === 'customer_error') { evScore = 80; chosenAction = 'send_email'; }
+        if (cause === 'technical_hard_decline') { evScore = 40; chosenAction = 'initiate_call'; }
 
         try {
           const parsed = JSON.parse(rawContent.replace(/```json|```/g, '').trim());
           if (typeof parsed.ev_score === 'number') {
             evScore = Math.min(100, Math.max(0, Math.round(parsed.ev_score)));
           }
+          if (['initiate_call', 'send_email'].includes(parsed.chosen_action)) {
+            chosenAction = parsed.chosen_action;
+          }
         } catch (e) {}
 
-        return { evScore, chosenAction: 'initiate_call' };
+        return { evScore, chosenAction };
       },
       leakId,
       'Sarvam AI Agent'
@@ -75,15 +81,17 @@ Respond ONLY in JSON:
     const { evScore, chosenAction } = credentialResult.data;
     const newStatus = 'open';
 
-    // Update leak record with chosen voice recovery action
-    await supabase
+    // Update leak record with chosen recovery action
+    const { data: updatedLeak } = await supabase
       .from('leaks')
       .update({
         ev_score: evScore,
         chosen_action: chosenAction,
         status: newStatus,
       })
-      .eq('id', leakId);
+      .eq('id', leakId)
+      .select('*')
+      .single();
 
     // Record audit log event (event_type: 'decided')
     await supabase.from('audit_log').insert([
@@ -96,19 +104,20 @@ Respond ONLY in JSON:
       },
     ]);
 
-    // Automatically trigger Sarvam Voice Agent outbound dispatch via /api/act
+    // Automatically trigger execution via /api/act or /api/notify-email
     let actionExecuted = false;
     let actionOutcome = null;
     try {
       const origin = new URL(request.url).origin;
-      const actRes = await fetch(`${origin}/api/act`, {
+      const targetUrl = chosenAction === 'send_email' ? `${origin}/api/notify-email` : `${origin}/api/act`;
+      const actRes = await fetch(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leakId, action: 'initiate_call' }),
+        body: JSON.stringify({ leakId, action: chosenAction }),
       });
       const actData = await actRes.json();
       actionExecuted = actData.success;
-      actionOutcome = actData.outcome || actData.message;
+      actionOutcome = actData.outcome || actData.message || (actData.emailId ? `Email sent to ${actData.sentTo}` : null);
     } catch (actErr) {
       console.warn('[decide] Auto-dispatch act failed:', actErr.message);
     }
@@ -118,7 +127,8 @@ Respond ONLY in JSON:
       leakId,
       evScore,
       chosenAction,
-      status: newStatus,
+      status: updatedLeak?.status || newStatus,
+      leak: updatedLeak,
       actionExecuted,
       actionOutcome,
     });

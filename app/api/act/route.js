@@ -7,7 +7,7 @@ import { executeWithCredential } from '@/lib/credential-resolver';
 
 export async function POST(request) {
   try {
-    const { leakId } = await request.json();
+    const { leakId, action: requestedAction } = await request.json();
     if (!leakId) {
       return NextResponse.json({ success: false, error: 'leakId is required' }, { status: 400 });
     }
@@ -23,6 +23,19 @@ export async function POST(request) {
 
     if (leakError || !leak) {
       return NextResponse.json({ success: false, error: 'Leak not found' }, { status: 404 });
+    }
+
+    const actionToTake = requestedAction || leak.chosen_action || 'initiate_call';
+
+    if (actionToTake === 'send_email') {
+      const origin = new URL(request.url).origin;
+      const emailRes = await fetch(`${origin}/api/notify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leakId }),
+      });
+      const emailData = await emailRes.json();
+      return NextResponse.json(emailData, { status: emailRes.status });
     }
 
     let customerPhone = (leak.customer_phone || '').trim();
