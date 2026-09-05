@@ -97,35 +97,61 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
     }
   };
 
-  const handleExecuteAction = async () => {
+  const handleSendEmail = async () => {
     if (!activeLeak?.id) return;
     setActionLoading(true);
-    const isEmail = activeLeak.chosen_action === 'send_email';
-    setActionMessage(isEmail ? 'Sending email notification via Resend...' : 'Connecting to Sarvam Voice Agent Telephony...');
+    setActionMessage('Sending email notification via Resend...');
     try {
-      const endpoint = isEmail ? '/api/notify-email' : '/api/act';
-      const res = await fetch(endpoint, {
+      const res = await fetch('/api/notify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           leakId: activeLeak.id,
-          action: activeLeak.chosen_action || 'initiate_call',
         }),
       });
       const data = await res.json();
       if (data.success) {
         setActiveLeak((prev) => ({
           ...prev,
-          status: isEmail ? 'notified' : 'action_taken',
-          chosen_action: isEmail ? 'send_email' : 'initiate_call',
+          status: 'notified',
+          chosen_action: 'send_email',
         }));
-        setActionMessage(
-          isEmail
-            ? `Email sent successfully to ${activeLeak.customer_email || data.sentTo}`
-            : `Voice Call Dispatched to ${activeLeak.customer_phone || '+919104898224'}`
-        );
+        setActionMessage(`Email sent successfully to ${activeLeak.customer_email || data.sentTo}`);
       } else {
-        setActionMessage(`Execution: ${data.message || data.error}`);
+        setActionMessage(`Email Error: ${data.error || 'Failed to send email'}`);
+      }
+    } catch (e) {
+      setActionMessage(`Error: ${e.message}`);
+    } finally {
+      setActionLoading(false);
+      fetchTimeline(activeLeak.id);
+      if (onRefresh) onRefresh();
+    }
+  };
+
+  const handleExecuteCall = async () => {
+    if (!activeLeak?.id) return;
+    setActionLoading(true);
+    setActionMessage('Connecting to Sarvam Voice Agent Telephony...');
+    try {
+      const res = await fetch('/api/act', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leakId: activeLeak.id,
+          action: 'initiate_call',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setActiveLeak((prev) => ({
+          ...prev,
+          status: 'action_taken',
+          chosen_action: 'initiate_call',
+        }));
+        setActionMessage(`Voice Call Dispatched to ${activeLeak.customer_phone || '+919104898224'}`);
+      } else {
+        setActionMessage(`Call Error: ${data.message || data.error}`);
       }
     } catch (e) {
       setActionMessage(`Error: ${e.message}`);
@@ -242,37 +268,52 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
           <p className="text-[11px] text-[#94A3B8] mt-1">Expected net recovery yield after policy friction</p>
         </div>
 
-        {/* Chosen Action Section */}
+        {/* Chosen Action & Dispatch Controls */}
         <div className="border border-[#D8DEE2] rounded p-4 bg-white space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[#0b4f4a]">
                 {activeLeak.chosen_action === 'send_email' ? 'mail' : 'ring_volume'}
               </span>
-              <span className="text-xs font-semibold text-[#1a1c1c]">Recovery Action</span>
+              <span className="text-xs font-semibold text-[#1a1c1c]">Recovery Action Channels</span>
             </div>
-            <button
-              onClick={handleExecuteAction}
-              disabled={actionLoading}
-              className="px-3 py-1.5 bg-[#0b4f4a] hover:bg-[#003733] text-white text-xs font-mono-data font-semibold rounded transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
-            >
-              {actionLoading ? (
-                <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              ) : (
-                <span className="material-symbols-outlined text-xs">
-                  {activeLeak.chosen_action === 'send_email' ? 'send' : 'call'}
-                </span>
-              )}
-              {activeLeak.chosen_action === 'send_email' ? 'Send Email' : 'Execute Call'}
-            </button>
+
+            {/* Action Buttons: Both Send Email and Execute Call */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSendEmail}
+                disabled={actionLoading}
+                className="px-3 py-1.5 bg-[#0b4f4a] hover:bg-[#003733] text-white text-xs font-mono-data font-semibold rounded transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+              >
+                {actionLoading && activeLeak?.chosen_action === 'send_email' ? (
+                  <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  <span className="material-symbols-outlined text-xs">send</span>
+                )}
+                Send Email
+              </button>
+
+              <button
+                onClick={handleExecuteCall}
+                disabled={actionLoading}
+                className="px-3 py-1.5 bg-[#C98A2B] hover:bg-[#b07823] text-white text-xs font-mono-data font-semibold rounded transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+              >
+                {actionLoading && activeLeak?.chosen_action === 'initiate_call' ? (
+                  <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  <span className="material-symbols-outlined text-xs">call</span>
+                )}
+                Execute Call
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center justify-between p-2.5 bg-[#f3f8f6] rounded border border-[#0b4f4a]/20">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="font-mono-data font-bold text-xs text-[#0b4f4a]">
-                {activeLeak.chosen_action === 'send_email'
-                  ? 'SEND EMAIL (Resend Email)'
+                RECOMMENDED: {activeLeak.chosen_action === 'send_email'
+                  ? 'SEND EMAIL (Resend Provider)'
                   : 'INITIATE CALL (Sarvam Voice Agent)'}
               </span>
             </div>
@@ -281,22 +322,24 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
             </span>
           </div>
 
-          {/* Connection Details — Clean 2-Box Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          {/* Connection Details — 3-Box Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
             <div className="p-2 bg-[#f9f9f9] rounded border border-[#D8DEE2]">
-              <span className="text-[10px] font-mono-data text-[#94A3B8] uppercase block">
-                {activeLeak.chosen_action === 'send_email' ? 'Target Email' : 'Target Phone'}
-              </span>
-              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate">
-                {activeLeak.chosen_action === 'send_email'
-                  ? activeLeak.customer_email || 'No Email'
-                  : activeLeak.customer_phone || '+919104898224'}
+              <span className="text-[10px] font-mono-data text-[#94A3B8] uppercase block">Target Email</span>
+              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate" title={activeLeak.customer_email || 'No Email'}>
+                {activeLeak.customer_email || 'None on record'}
               </span>
             </div>
             <div className="p-2 bg-[#f9f9f9] rounded border border-[#D8DEE2]">
-              <span className="text-[10px] font-mono-data text-[#94A3B8] uppercase block">Provider</span>
-              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate">
-                {activeLeak.chosen_action === 'send_email' ? 'Resend' : 'Conversatio-7a28a6dd-fdfe'}
+              <span className="text-[10px] font-mono-data text-[#94A3B8] uppercase block">Target Phone</span>
+              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate" title={activeLeak.customer_phone || '+919104898224'}>
+                {activeLeak.customer_phone || '+919104898224'}
+              </span>
+            </div>
+            <div className="p-2 bg-[#f9f9f9] rounded border border-[#D8DEE2]">
+              <span className="text-[10px] font-mono-data text-[#94A3B8] uppercase block">Voice Agent ID</span>
+              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate" title="Conversatio-7a28a6dd-fdfe">
+                Conversatio-7a28a6dd-fdfe
               </span>
             </div>
           </div>

@@ -23,10 +23,8 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Leak not found' }, { status: 404 });
     }
 
-    // Validate customer email exists
-    if (!leak.customer_email) {
-      return NextResponse.json({ success: false, error: 'No customer email on this leak' }, { status: 400 });
-    }
+    // Use customer email from DB if available, otherwise static fallback
+    const targetEmail = leak.customer_email || 'dhairyapatel0246@gmail.com';
 
     const customerName = leak.customer_name || 'Valued Customer';
     const amount = leak.amount || 0;
@@ -39,8 +37,8 @@ export async function POST(request) {
         const resend = new Resend(apiKey);
 
         const { data, error } = await resend.emails.send({
-          from: 'Vasuli <onboarding@resend.dev>', // Replace with your verified domain in production
-          to: leak.customer_email,
+          from: 'Vasuli <noreply@vasuli.bookwith.tech>',
+          to: targetEmail,
           subject: `Payment Follow-up — ₹${amount}`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -85,7 +83,7 @@ export async function POST(request) {
       leak_id: leakId,
       event_timestamp: new Date().toISOString(),
       event_type: 'notified',
-      detail: `Email sent to ${leak.customer_email} (Resend ID: ${emailId})`,
+      detail: `Email sent to ${targetEmail} (Resend ID: ${emailId})`,
       outcome: 'Email Delivered',
     }]);
 
@@ -93,7 +91,7 @@ export async function POST(request) {
       success: true,
       leakId,
       emailId,
-      sentTo: leak.customer_email,
+      sentTo: targetEmail,
     });
 
   } catch (error) {

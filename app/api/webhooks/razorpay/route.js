@@ -27,6 +27,7 @@ export async function POST(request) {
     }
 
     const customerName = payload.notes?.customer_name || payload.notes?.name || payload.email?.split('@')[0] || 'Valued Customer';
+    const customerEmail = payload.email || body.payload?.payment?.entity?.email || payload?.payment?.entity?.email || null;
     const gender = payload.notes?.gender || 'male';
 
     const supabase = getSupabaseServerClient();
@@ -40,6 +41,7 @@ export async function POST(request) {
           amount,
           currency,
           customer_phone: customerPhone,
+          customer_email: payload?.payment?.entity?.email || null,
           customer_name: customerName,
           gender,
           source: dbSource,
