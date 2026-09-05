@@ -29,20 +29,19 @@ export async function POST(request) {
       'llm_reasoning',
       async (apiKey, cred) => {
         const client = new SarvamAIClient({ apiSubscriptionKey: apiKey });
-        const prompt = `You are an expert payment failure classification engine.
-Analyze the following payment failure leak metadata:
-- Payment ID: ${leak.razorpay_payment_id || 'unknown'}
-- Amount: ${leak.currency || 'INR'} ${leak.amount || 0}
-- Source: ${leak.source || 'unknown'}
-- Customer Name: ${leak.customer_name || 'unknown'}
+        const prompt = `You are a financial payment failure diagnosis engine for India payment infrastructure.
+Analyze this payment failure and classify the root cause into EXACTLY ONE category:
+- 'bank_decline_soft' (e.g. Insufficient funds, temporary bank downtime, timeout, customer daily limit exceeded)
+- 'technical_hard_decline' (e.g. Invalid account, card expired, blocked merchant category, fraudulent card)
+- 'customer_error' (e.g. OTP entered incorrectly, 3DS authentication cancelled, browser closed)
 
-Classify the root cause into EXACTLY ONE of these 3 allowed values:
-1. bank_decline_soft
-2. technical_hard_decline
-3. customer_error
+Payment Leak Details:
+- Source: ${leak.source || 'payment_failed'}
+- Amount: INR ${leak.amount || 0}
+- Payment ID: ${leak.razorpay_payment_id || 'Unknown'}
 
-Respond ONLY with JSON matching this structure:
-{"root_cause": "bank_decline_soft" | "technical_hard_decline" | "customer_error", "reasoning": "short explanation"}`;
+Respond ONLY with a valid JSON object:
+{"root_cause": "bank_decline_soft" | "technical_hard_decline" | "customer_error", "reasoning": "string"}`;
 
         const response = await client.chat.completions({
           model: 'sarvam-105b',

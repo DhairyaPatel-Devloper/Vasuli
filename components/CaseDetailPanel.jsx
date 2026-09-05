@@ -15,20 +15,27 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
     setActiveLeak(leak);
     if (leak?.id) {
       fetchTimeline(leak.id);
+    } else {
+      setTimeline([]);
     }
   }, [leak]);
 
   const fetchTimeline = async (leakId) => {
     setLoadingTimeline(true);
-    const supabase = getSupabaseBrowserClient();
-    const { data } = await supabase
-      .from('audit_log')
-      .select('*')
-      .eq('leak_id', leakId)
-      .order('event_timestamp', { ascending: false });
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data } = await supabase
+        .from('audit_log')
+        .select('*')
+        .eq('leak_id', leakId)
+        .order('event_timestamp', { ascending: false });
 
-    setTimeline(data || []);
-    setLoadingTimeline(false);
+      setTimeline(data || []);
+    } catch (e) {
+      console.warn('Error fetching timeline:', e.message);
+    } finally {
+      setLoadingTimeline(false);
+    }
   };
 
   const handleRunDiagnosis = async () => {
@@ -46,6 +53,7 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
         setActiveLeak((prev) => ({
           ...prev,
           root_cause: data.rootCause,
+          status: data.status || prev.status,
         }));
         setActionMessage(`Diagnosis complete: ${data.rootCause}. Computing EV score...`);
         // Auto trigger decision next
@@ -65,7 +73,7 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
   const handleRunDecision = async () => {
     if (!activeLeak?.id) return;
     setActionLoading(true);
-    setActionMessage('Computing EV Recovery Score & Routing to Sarvam Voice Agent...');
+    setActionMessage('Computing EV Recovery Score & Routing...');
     try {
       const res = await fetch('/api/decide', {
         method: 'POST',
@@ -116,7 +124,7 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
           status: 'notified',
           chosen_action: 'send_email',
         }));
-        setActionMessage(`Email sent successfully to ${activeLeak.customer_email || data.sentTo}`);
+        setActionMessage(`Email sent successfully to ${data.sentTo || activeLeak.customer_email || 'dhairyapatel0246@gmail.com'}`);
       } else {
         setActionMessage(`Email Error: ${data.error || 'Failed to send email'}`);
       }
@@ -149,7 +157,7 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
           status: 'action_taken',
           chosen_action: 'initiate_call',
         }));
-        setActionMessage(`Voice Call Dispatched to ${activeLeak.customer_phone || '+919104898224'}`);
+        setActionMessage(`Voice Call Dispatched to ${activeLeak.customer_no || activeLeak.customer_phone || '+919104898224'}`);
       } else {
         setActionMessage(`Call Error: ${data.message || data.error}`);
       }
@@ -162,7 +170,7 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
     }
   };
 
-  if (!activeLeak) return null;
+  const hasCase = Boolean(activeLeak && activeLeak.id);
 
   return (
     <div className="bg-white border border-[#D8DEE2] rounded shadow-lg flex flex-col h-full overflow-hidden">
@@ -173,12 +181,15 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
             <span className="material-symbols-outlined text-amber-400 text-xl">shield_with_house</span>
             <h2 className="font-headline font-bold text-lg">Case Details</h2>
           </div>
-          <p className="font-mono-data text-xs text-[#84bfb8] mt-0.5">ID: {activeLeak.id}</p>
+          <p className="font-mono-data text-xs text-[#84bfb8] mt-0.5">
+            {hasCase ? `ID: ${activeLeak.id}` : 'No Case Selected'}
+          </p>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-[#84bfb8] hover:text-white transition-colors p-1"
+            aria-label="Close Case Details"
+            className="text-[#84bfb8] hover:text-white transition-colors p-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
@@ -192,25 +203,29 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
           <div>
             <span className="text-[11px] font-medium text-[#3f4947] uppercase block">Payment ID</span>
             <span className="font-mono-data font-semibold text-xs text-[#1a1c1c] truncate block">
-              {activeLeak.razorpay_payment_id || 'N/A'}
+              {hasCase ? (activeLeak.razorpay_payment_id || '—') : '—'}
             </span>
           </div>
           <div>
             <span className="text-[11px] font-medium text-[#3f4947] uppercase block">Amount</span>
             <span className="font-mono-data font-bold text-sm text-[#0b4f4a] block">
-              ₹{(activeLeak.amount || 0).toLocaleString()} {activeLeak.currency || 'INR'}
+              {hasCase ? `₹${(activeLeak.amount || 0).toLocaleString()} ${activeLeak.currency || 'INR'}` : '—'}
             </span>
           </div>
           <div>
             <span className="text-[11px] font-medium text-[#3f4947] uppercase block">Source</span>
             <span className="font-mono-data text-xs text-[#1a1c1c] block capitalize">
-              {activeLeak.source || 'payment_failed'}
+              {hasCase ? (activeLeak.source || 'payment_failed').replace(/_/g, ' ') : '—'}
             </span>
           </div>
           <div>
             <span className="text-[11px] font-medium text-[#3f4947] uppercase block">Current Status</span>
             <div className="mt-0.5">
-              <StatusPill status={activeLeak.status} />
+              {hasCase ? (
+                <StatusPill status={activeLeak.status} />
+              ) : (
+                <span className="font-mono-data text-xs text-[#94A3B8]">—</span>
+              )}
             </div>
           </div>
         </div>
@@ -234,14 +249,23 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
             </div>
             <button
               onClick={handleRunDiagnosis}
-              disabled={actionLoading}
-              className="px-3 py-1 bg-[#0b4f4a] hover:bg-[#003733] text-white text-xs font-mono-data rounded transition-colors disabled:opacity-50"
+              disabled={!hasCase || actionLoading}
+              title={!hasCase ? 'Select a case first' : 'Run AI Root Cause Diagnosis'}
+              className={`px-3 py-1.5 text-xs font-mono-data rounded transition-colors ${
+                !hasCase
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300'
+                  : 'bg-[#0b4f4a] hover:bg-[#003733] text-white shadow-sm'
+              }`}
             >
               Diagnose
             </button>
           </div>
           <p className="text-xs text-[#3f4947] bg-[#f9f9f9] p-3 rounded border border-[#D8DEE2]/60 font-mono-data">
-            {activeLeak.root_cause || 'No diagnosis generated yet. Click "Diagnose" to evaluate transaction failure.'}
+            {hasCase
+              ? activeLeak.root_cause && activeLeak.root_cause !== 'unknown'
+                ? activeLeak.root_cause.replace(/_/g, ' ')
+                : 'No diagnosis generated yet. Click "Diagnose" to evaluate transaction failure.'
+              : '—'}
           </p>
         </div>
 
@@ -254,16 +278,23 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
             </div>
             <button
               onClick={handleRunDecision}
-              disabled={actionLoading}
-              className="text-[11px] font-mono-data text-[#0b4f4a] underline hover:text-[#003733] font-semibold"
+              disabled={!hasCase || actionLoading}
+              title={!hasCase ? 'Select a case first' : 'Compute EV Recovery Score'}
+              className={`text-[11px] font-mono-data font-semibold ${
+                !hasCase
+                  ? 'text-gray-400 no-underline cursor-not-allowed'
+                  : 'text-[#0b4f4a] underline hover:text-[#003733]'
+              }`}
             >
               Compute Score
             </button>
           </div>
           <div className="font-mono-data font-bold text-3xl text-[#C98A2B] mt-1">
-            {activeLeak.ev_score !== null && activeLeak.ev_score !== undefined
-              ? `${activeLeak.ev_score} / 100`
-              : 'Not Scored'}
+            {hasCase
+              ? activeLeak.ev_score !== null && activeLeak.ev_score !== undefined
+                ? `${activeLeak.ev_score} / 100`
+                : 'Not Scored'
+              : '—'}
           </div>
           <p className="text-[11px] text-[#94A3B8] mt-1">Expected net recovery yield after policy friction</p>
         </div>
@@ -273,17 +304,17 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[#0b4f4a]">
-                {activeLeak.chosen_action === 'send_email' ? 'mail' : 'ring_volume'}
+                {activeLeak?.chosen_action === 'send_email' ? 'mail' : 'ring_volume'}
               </span>
               <span className="text-xs font-semibold text-[#1a1c1c]">Recovery Action Channels</span>
             </div>
 
-            {/* Action Buttons: Both Send Email and Execute Call */}
+            {/* Action Buttons */}
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSendEmail}
-                disabled={actionLoading}
-                className="px-3 py-1.5 bg-[#0b4f4a] hover:bg-[#003733] text-white text-xs font-mono-data font-semibold rounded transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+                disabled={!hasCase || actionLoading}
+                className="px-3 py-1.5 bg-[#0b4f4a] hover:bg-[#003733] text-white text-xs font-mono-data font-semibold rounded transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm min-h-[44px]"
               >
                 {actionLoading && activeLeak?.chosen_action === 'send_email' ? (
                   <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -295,8 +326,8 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
 
               <button
                 onClick={handleExecuteCall}
-                disabled={actionLoading}
-                className="px-3 py-1.5 bg-[#C98A2B] hover:bg-[#b07823] text-white text-xs font-mono-data font-semibold rounded transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+                disabled={!hasCase || actionLoading}
+                className="px-3 py-1.5 bg-[#C98A2B] hover:bg-[#b07823] text-white text-xs font-mono-data font-semibold rounded transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm min-h-[44px]"
               >
                 {actionLoading && activeLeak?.chosen_action === 'initiate_call' ? (
                   <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -308,38 +339,43 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-2.5 bg-[#f3f8f6] rounded border border-[#0b4f4a]/20">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="font-mono-data font-bold text-xs text-[#0b4f4a]">
-                RECOMMENDED: {activeLeak.chosen_action === 'send_email'
-                  ? 'SEND EMAIL (Resend Provider)'
-                  : 'INITIATE CALL (Sarvam Voice Agent)'}
+          {/* Dynamic Recommendation Banner */}
+          {hasCase && activeLeak.chosen_action && (
+            <div className="flex items-center justify-between p-2.5 bg-[#f3f8f6] rounded border border-[#0b4f4a]/20">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="font-mono-data font-bold text-xs text-[#0b4f4a]">
+                  RECOMMENDED: {activeLeak.chosen_action === 'send_email'
+                    ? 'SEND EMAIL (Resend Provider)'
+                    : activeLeak.chosen_action === 'initiate_call'
+                    ? 'INITIATE CALL (Sarvam Voice Agent)'
+                    : activeLeak.chosen_action.toUpperCase().replace(/_/g, ' ')}
+                </span>
+              </div>
+              <span className="px-2 py-0.5 text-[10px] font-mono-data font-semibold bg-[#0b4f4a]/10 text-[#0b4f4a] rounded">
+                Guarded by Policy
               </span>
             </div>
-            <span className="px-2 py-0.5 text-[10px] font-mono-data font-semibold bg-[#0b4f4a]/10 text-[#0b4f4a] rounded">
-              Guarded by Policy
-            </span>
-          </div>
+          )}
 
           {/* Connection Details — 3-Box Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
             <div className="p-2 bg-[#f9f9f9] rounded border border-[#D8DEE2]">
               <span className="text-[10px] font-mono-data text-[#94A3B8] uppercase block">Target Email</span>
-              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate" title={activeLeak.customer_email || 'No Email'}>
-                {activeLeak.customer_email || 'None on record'}
+              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate" title={hasCase ? (activeLeak.customer_email || 'dhairyapatel0246@gmail.com') : '—'}>
+                {hasCase ? (activeLeak.customer_email || 'dhairyapatel0246@gmail.com') : '—'}
               </span>
             </div>
             <div className="p-2 bg-[#f9f9f9] rounded border border-[#D8DEE2]">
               <span className="text-[10px] font-mono-data text-[#94A3B8] uppercase block">Target Phone</span>
-              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate" title={activeLeak.customer_phone || '+919104898224'}>
-                {activeLeak.customer_phone || '+919104898224'}
+              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate" title={hasCase ? (activeLeak.customer_no || activeLeak.customer_phone || '+919104898224') : '—'}>
+                {hasCase ? (activeLeak.customer_no || activeLeak.customer_phone || '+919104898224') : '—'}
               </span>
             </div>
             <div className="p-2 bg-[#f9f9f9] rounded border border-[#D8DEE2]">
               <span className="text-[10px] font-mono-data text-[#94A3B8] uppercase block">Voice Agent ID</span>
-              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate" title="Conversatio-7a28a6dd-fdfe">
-                Conversatio-7a28a6dd-fdfe
+              <span className="font-mono-data font-bold text-xs text-[#0b4f4a] block truncate">
+                {hasCase ? 'Conversatio-7a28a6dd-fdfe' : '—'}
               </span>
             </div>
           </div>
@@ -352,7 +388,9 @@ export default function CaseDetailPanel({ leak, onClose, onRefresh }) {
             Audit Event Timeline
           </h3>
 
-          {loadingTimeline ? (
+          {!hasCase ? (
+            <p className="text-xs text-[#94A3B8] font-mono-data text-center py-4">— No case selected —</p>
+          ) : loadingTimeline ? (
             <p className="text-xs text-[#94A3B8] font-mono-data">Loading event logs...</p>
           ) : timeline.length === 0 ? (
             <p className="text-xs text-[#94A3B8] font-mono-data">No audit log entries recorded for this case.</p>

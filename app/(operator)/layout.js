@@ -39,9 +39,9 @@ export default function OperatorLayout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f9f9f9]">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#f9f9f9]">
       <Sidebar role="operator" />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 pb-20 md:pb-0">
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

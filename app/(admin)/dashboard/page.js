@@ -269,7 +269,8 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[#f3f3f4] border-b border-[#D8DEE2] text-[11px] font-mono-data uppercase text-[#3f4947]">
@@ -348,13 +349,43 @@ export default function AdminDashboardPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Stacked Card View (Task 12) */}
+          <div className="block md:hidden p-4 space-y-3">
+            {loading ? (
+              <p className="text-center text-[#94A3B8] font-mono-data text-xs py-4">Loading leaks...</p>
+            ) : leaks.length === 0 ? (
+              <p className="text-center text-[#94A3B8] font-mono-data text-xs py-4">No payment leaks yet.</p>
+            ) : (
+              leaks.slice(0, 10).map((leak) => (
+                <div
+                  key={leak.id}
+                  onClick={() => setSelectedLeak(leak)}
+                  className="p-3.5 bg-[#f9f9f9] border border-[#D8DEE2] rounded text-xs space-y-2 cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono-data font-bold text-[#0b4f4a]">{leak.razorpay_payment_id}</span>
+                    <StatusPill status={leak.status} />
+                  </div>
+                  <div className="flex justify-between items-center font-mono-data">
+                    <span className="text-[#3f4947]">Amount:</span>
+                    <span className="font-bold text-[#1a1c1c]">₹{(leak.amount || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px] text-[#94A3B8] font-mono-data">
+                    <span>{leak.root_cause || 'Pending diagnosis'}</span>
+                    <span>EV: {leak.ev_score ?? '—'}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
       {/* Case Detail Inspection Modal */}
       {selectedLeak && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
-          <div className="w-full max-w-2xl h-full p-4">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-end p-0 sm:p-4">
+          <div className="w-full sm:max-w-2xl h-full sm:h-auto max-h-screen sm:max-h-[90vh]">
             <CaseDetailPanel
               leak={selectedLeak}
               onClose={() => setSelectedLeak(null)}

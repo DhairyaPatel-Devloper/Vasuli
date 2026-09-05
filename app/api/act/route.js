@@ -38,7 +38,7 @@ export async function POST(request) {
       return NextResponse.json(emailData, { status: emailRes.status });
     }
 
-    let customerPhone = (leak.customer_phone || '').trim();
+    let customerPhone = (leak.customer_no || leak.customer_phone || '').trim();
     let customerNameVal = leak.customer_name || '';
 
     // 2. If phone is missing, automatically fetch from Razorpay API using payment_id
@@ -72,6 +72,7 @@ export async function POST(request) {
               await supabase
                 .from('leaks')
                 .update({
+                  customer_no: customerPhone,
                   customer_phone: customerPhone,
                   customer_name: customerNameVal || 'Valued Customer',
                 })
@@ -91,7 +92,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          error: `customer_phone is missing for leak ${leakId}. Please provide a valid phone number on the leak record or ensure Razorpay webhook includes customer contact.`,
+          error: `customer_no is missing for leak ${leakId}. Please provide a valid phone number on the leak record or ensure Razorpay webhook includes customer contact.`,
         },
         { status: 400 }
       );
@@ -109,8 +110,7 @@ export async function POST(request) {
     const genderVal = leak.gender || 'male';
     const razorpayPaymentIdVal = leak.razorpay_payment_id || '';
 
-    // 4. Clean Sarvam Outbound payload (matches Sarvam SDK / dashboard exactly)
-    // app_id & app_version from: https://indus.sarvam.ai/samvaad/deploy/with-code/recipes/sdk
+    // 4. Clean Sarvam Outbound payload
     const outboundBody = {
       app_config: {
         app_id: 'Conversatio-7a28a6dd-fdfe',
@@ -135,16 +135,12 @@ export async function POST(request) {
       }
     };
 
-    // 5. Dispatch voice call using credential-resolver (category = 'voice_call', provider_name = 'Voice agent')
+    // 5. Dispatch voice call using credential-resolver
     const credentialResult = await executeWithCredential(
       'voice_call',
       async (apiKey, cred) => {
-        // Explicit check for API Key existence
         if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
-          console.error('[act] CRITICAL: Voice API Key is NULL or EMPTY in api_credentials table for provider:', cred?.provider_name);
           throw new Error(`Voice API Key is missing or null in api_credentials for provider: ${cred?.provider_name || 'Voice agent'}`);
-        } else {
-          console.log('[act] Voice API key resolved successfully. Provider:', cred.provider_name, '| Prefix:', apiKey.substring(0, 8) + '...');
         }
 
         console.log('[act] Outbound body:', JSON.stringify(outboundBody, null, 2));
@@ -198,6 +194,7 @@ export async function POST(request) {
       .update({
         status: 'action_taken',
         chosen_action: 'initiate_call',
+        customer_no: customerPhone,
         customer_phone: customerPhone,
       })
       .eq('id', leakId);

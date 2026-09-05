@@ -85,7 +85,7 @@ export default function AdminPolicyPage() {
         subtitle="Configure strict operational boundary rules, quiet hours, cooldowns, and hard-stop safety filters."
       />
 
-      <div className="p-8 space-y-8 flex-1">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 flex-1">
         {toast && (
           <div className="p-4 bg-[#4C7A63]/15 border border-[#4C7A63]/40 rounded text-xs font-mono-data text-[#0b4f4a] flex items-center justify-between shadow-sm">
             <span>{toast}</span>

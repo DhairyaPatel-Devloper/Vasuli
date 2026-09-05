@@ -43,16 +43,16 @@ export default function OperatorAuditLogPage() {
         subtitle="Immutable view of manual overrides, resolved escalations, and human decision logs."
       />
 
-      <div className="p-8 flex-1 flex flex-col gap-6">
+      <div className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col gap-6">
         <div className="bg-white border border-[#D8DEE2] rounded p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
             <span className="text-xs font-semibold text-[#1a1c1c] uppercase tracking-wider">
               Filter Log View:
             </span>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-1.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded text-xs font-mono-data text-[#1a1c1c]"
+              className="px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded text-xs font-mono-data text-[#1a1c1c] min-h-[44px]"
             >
               <option value="all">All Operator Activity</option>
               <option value="human_override">Human Overrides Only</option>
@@ -63,8 +63,9 @@ export default function OperatorAuditLogPage() {
 
           <button
             onClick={fetchOperatorLogs}
-            className="px-3 py-1.5 bg-[#0b4f4a] text-white text-xs font-mono-data rounded hover:bg-[#003733] transition-colors"
+            className="px-3 py-2 bg-[#0b4f4a] text-white text-xs font-mono-data rounded hover:bg-[#003733] transition-colors min-h-[44px] flex items-center gap-1.5"
           >
+            <span className="material-symbols-outlined text-sm">sync</span>
             Refresh Logs
           </button>
         </div>

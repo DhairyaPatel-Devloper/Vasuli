@@ -27,32 +27,54 @@ export async function POST(request) {
     }
 
     const customerName = payload.notes?.customer_name || payload.notes?.name || payload.email?.split('@')[0] || 'Valued Customer';
-    const customerEmail = payload.email || body.payload?.payment?.entity?.email || payload?.payment?.entity?.email || null;
+    const customerEmail = payload.email || payload?.payment?.entity?.email || body?.payload?.payment?.entity?.email || null;
     const gender = payload.notes?.gender || 'male';
 
     const supabase = getSupabaseServerClient();
 
     // 1. Insert new leak with default voice recovery action
-    const { data: leak, error: leakError } = await supabase
+    const insertPayload = {
+      razorpay_payment_id: razorpayPaymentId,
+      amount,
+      currency,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      customer_name: customerName,
+      gender,
+      source: dbSource,
+      detected_at: new Date().toISOString(),
+      status: 'open',
+      root_cause: 'unknown',
+      chosen_action: 'initiate_call',
+    };
+
+    let { data: leak, error: leakError } = await supabase
       .from('leaks')
-      .insert([
-        {
-          razorpay_payment_id: razorpayPaymentId,
-          amount,
-          currency,
-          customer_phone: customerPhone,
-          customer_email: payload?.payment?.entity?.email || null,
-          customer_name: customerName,
-          gender,
-          source: dbSource,
-          detected_at: new Date().toISOString(),
-          status: 'open',
-          root_cause: 'unknown',
-          chosen_action: 'initiate_call',
-        },
-      ])
+      .insert([insertPayload])
       .select()
       .single();
+
+    if (leakError && leakError.message?.includes('schema cache')) {
+      // Fallback if optional schema columns are missing
+      const basePayload = {
+        razorpay_payment_id: razorpayPaymentId,
+        amount,
+        currency,
+        customer_phone: customerPhone,
+        source: dbSource,
+        detected_at: new Date().toISOString(),
+        status: 'open',
+        root_cause: 'unknown',
+        chosen_action: 'initiate_call',
+      };
+      const retry = await supabase
+        .from('leaks')
+        .insert([basePayload])
+        .select()
+        .single();
+      leak = retry.data;
+      leakError = retry.error;
+    }
 
     if (leakError) {
       console.error('Error recording leak:', leakError);
@@ -72,16 +94,12 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Razorpay payment failure ingested for Sarvam Voice Agent recovery',
+      message: 'Razorpay payment failure recorded in database',
       leakId: leak.id,
       razorpayPaymentId,
       customerPhone,
-      variables: {
-        amount: String(amount),
-        customer_name: customerName,
-        gender,
-        razorpay_payment_id: razorpayPaymentId,
-      },
+      amount,
+      action: 'initiate_call',
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

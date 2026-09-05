@@ -118,32 +118,32 @@ export default function AdminApiManagementPage() {
     setShowModal(true);
   };
 
-  // Categories defined by DB check constraint
-  const categories = ['payment_gateway', 'llm_reasoning', 'email', 'whatsapp', 'voice_call'];
+  // WhatsApp category removed — only standard providers maintained
+  const categories = ['payment_gateway', 'llm_reasoning', 'email', 'voice_call'];
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] flex flex-col">
       <Header
         title="Third-Party API Credentials & Key Rotation"
-        subtitle="Manage encrypted API keys and secrets for payment gateways, LLMs, email, WhatsApp, and voice calls with priority failover."
+        subtitle="Manage encrypted API keys and secrets for payment gateways, LLMs, email, and voice calls with priority failover."
       />
 
-      <div className="p-8 flex-1 flex flex-col gap-6">
+      <div className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col gap-6">
         {toast && (
           <div className="p-3 bg-[#4C7A63]/15 border border-[#4C7A63]/30 rounded text-xs font-mono-data text-[#0b4f4a] flex items-center justify-between">
             <span>{toast}</span>
-            <button onClick={() => setToast('')} className="font-bold">×</button>
+            <button onClick={() => setToast('')} className="font-bold min-h-[36px] min-w-[36px] flex items-center justify-center">×</button>
           </div>
         )}
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="font-headline font-semibold text-lg text-[#1a1c1c]">Configured Provider Keys & Secrets</h2>
             <p className="text-xs text-[#3f4947]">Keys are dynamically loaded by category priority order at runtime.</p>
           </div>
           <button
             onClick={openAddModal}
-            className="px-4 py-2.5 bg-[#0b4f4a] hover:bg-[#003733] text-white font-headline font-semibold text-xs rounded shadow flex items-center gap-2 transition-colors"
+            className="px-4 py-2.5 bg-[#0b4f4a] hover:bg-[#003733] text-white font-headline font-semibold text-xs rounded shadow flex items-center justify-center gap-2 transition-colors min-h-[44px]"
           >
             <span className="material-symbols-outlined text-base">add</span>
             Add API Credential
@@ -167,18 +167,19 @@ export default function AdminApiManagementPage() {
                   </span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse table-fixed">
                     <thead>
                       <tr className="bg-[#f9f9f9] border-b border-[#D8DEE2] text-[11px] font-mono-data uppercase text-[#3f4947]">
-                        <th className="py-3 px-4">Priority</th>
-                        <th className="py-3 px-4">Provider Name</th>
-                        <th className="py-3 px-4">Account Email</th>
-                        <th className="py-3 px-4">Masked Key ID</th>
-                        <th className="py-3 px-4">Masked Secret</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4">Last Error</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
+                        <th className="py-3 px-4 w-20">Priority</th>
+                        <th className="py-3 px-4 w-44">Provider Name</th>
+                        <th className="py-3 px-4 w-48">Account Email</th>
+                        <th className="py-3 px-4 w-40">Masked Key ID</th>
+                        <th className="py-3 px-4 w-36">Masked Secret</th>
+                        <th className="py-3 px-4 w-28">Status</th>
+                        <th className="py-3 px-4 w-36">Last Error</th>
+                        <th className="py-3 px-4 w-28 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#D8DEE2] text-xs">
@@ -194,22 +195,22 @@ export default function AdminApiManagementPage() {
                             <td className="py-3 px-4 font-mono-data font-bold text-[#0b4f4a]">
                               P{cred.priority}
                             </td>
-                            <td className="py-3 px-4 font-mono-data font-semibold text-[#1a1c1c]">
+                            <td className="py-3 px-4 font-mono-data font-semibold text-[#1a1c1c] truncate">
                               {cred.provider_name}
                             </td>
-                            <td className="py-3 px-4 font-mono-data text-[#3f4947]">
-                              {cred.account_email || '-'}
+                            <td className="py-3 px-4 font-mono-data text-[#3f4947] truncate">
+                              {cred.account_email || <span className="text-[#94A3B8] italic">—</span>}
                             </td>
-                            <td className="py-3 px-4 font-mono-data text-[#3f4947]">
+                            <td className="py-3 px-4 font-mono-data font-semibold text-[#1a1c1c] truncate">
                               {maskKey(cred.encrypted_key)}
                             </td>
-                            <td className="py-3 px-4 font-mono-data text-[#3f4947]">
+                            <td className="py-3 px-4 font-mono-data text-[#3f4947] truncate">
                               {cred.encrypted_secret ? maskKey(cred.encrypted_secret) : <span className="text-[#94A3B8] italic">None</span>}
                             </td>
                             <td className="py-3 px-4">
                               <StatusPill status={cred.status} />
                             </td>
-                            <td className="py-3 px-4 font-mono-data text-[#B23A2E] text-[11px] max-w-xs truncate">
+                            <td className="py-3 px-4 font-mono-data text-[#B23A2E] text-[11px] truncate">
                               {cred.last_error || 'None'}
                             </td>
                             <td className="py-3 px-4 text-right space-x-2">
@@ -232,6 +233,47 @@ export default function AdminApiManagementPage() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Mobile Stacked Card View */}
+                <div className="block md:hidden p-4 space-y-3">
+                  {catCreds.length === 0 ? (
+                    <p className="text-center text-[#94A3B8] font-mono-data text-xs py-2">
+                      No active credentials for [{cat}].
+                    </p>
+                  ) : (
+                    catCreds.map((cred) => (
+                      <div key={cred.id} className="p-3 bg-[#f9f9f9] border border-[#D8DEE2] rounded text-xs space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono-data font-bold text-[#0b4f4a]">P{cred.priority} · {cred.provider_name}</span>
+                          <StatusPill status={cred.status} />
+                        </div>
+                        <div className="font-mono-data text-xs text-[#1a1c1c] space-y-0.5">
+                          <div className="font-semibold">{maskKey(cred.encrypted_key)}</div>
+                          <div className="text-[11px] text-[#3f4947]">{cred.account_email || 'No email attached'}</div>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-[#D8DEE2]">
+                          <span className="text-[10px] text-[#B23A2E] font-mono-data truncate max-w-[180px]">
+                            {cred.last_error ? `Err: ${cred.last_error}` : 'Healthy'}
+                          </span>
+                          <div className="space-x-3">
+                            <button
+                              onClick={() => openEditModal(cred)}
+                              className="text-[#0b4f4a] font-mono-data text-xs font-semibold"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(cred.id)}
+                              className="text-[#B23A2E] font-mono-data text-xs font-semibold"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             );
           })}
@@ -239,18 +281,18 @@ export default function AdminApiManagementPage() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg border border-[#D8DEE2] w-full max-w-lg overflow-hidden shadow-2xl space-y-4">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg border border-[#D8DEE2] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="bg-[#0b4f4a] text-white px-6 py-4 flex items-center justify-between">
               <h3 className="font-headline font-bold text-base">
                 {editingCred ? 'Edit API Credential' : 'Add New API Credential'}
               </h3>
-              <button onClick={() => setShowModal(false)} className="text-[#84bfb8] hover:text-white">
+              <button onClick={() => setShowModal(false)} className="text-[#84bfb8] hover:text-white p-1 min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
 
-            <form onSubmit={handleSaveCredential} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleSaveCredential} className="p-6 space-y-4 text-xs overflow-y-auto flex-1">
               <div>
                 <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
                   Provider Category
@@ -258,12 +300,11 @@ export default function AdminApiManagementPage() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                  className="w-full px-3 py-2.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs min-h-[44px]"
                 >
                   <option value="payment_gateway">Payment Gateway (Razorpay)</option>
                   <option value="llm_reasoning">LLM Reasoning & Voice AI (Sarvam AI)</option>
                   <option value="email">Transactional Email (Resend)</option>
-                  <option value="whatsapp">WhatsApp / Notifications (Sarvam AI)</option>
                   <option value="voice_call">Voice Call AI (Sarvam AI)</option>
                 </select>
               </div>
@@ -278,20 +319,20 @@ export default function AdminApiManagementPage() {
                   value={formData.provider_name}
                   onChange={(e) => setFormData({ ...formData, provider_name: e.target.value })}
                   placeholder="e.g. Razorpay Test Key Primary"
-                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                  className="w-full px-3 py-2.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs min-h-[44px]"
                 />
               </div>
 
               <div>
                 <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
-                  Account Email (Optional)
+                  Account Email
                 </label>
                 <input
                   type="email"
                   value={formData.account_email}
                   onChange={(e) => setFormData({ ...formData, account_email: e.target.value })}
                   placeholder="account@company.com"
-                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                  className="w-full px-3 py-2.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs min-h-[44px]"
                 />
               </div>
 
@@ -305,7 +346,7 @@ export default function AdminApiManagementPage() {
                   value={formData.encrypted_key}
                   onChange={(e) => setFormData({ ...formData, encrypted_key: e.target.value })}
                   placeholder="rzp_test_..."
-                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                  className="w-full px-3 py-2.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs min-h-[44px]"
                 />
               </div>
 
@@ -318,11 +359,11 @@ export default function AdminApiManagementPage() {
                   value={formData.encrypted_secret}
                   onChange={(e) => setFormData({ ...formData, encrypted_secret: e.target.value })}
                   placeholder="Razorpay Secret / Auth Secret..."
-                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                  className="w-full px-3 py-2.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs min-h-[44px]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-semibold text-[#1a1c1c] uppercase tracking-wider mb-1">
                     Priority (1 = First Choice)
@@ -333,7 +374,7 @@ export default function AdminApiManagementPage() {
                     max="10"
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 1 })}
-                    className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                    className="w-full px-3 py-2.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs min-h-[44px]"
                   />
                 </div>
 
@@ -344,7 +385,7 @@ export default function AdminApiManagementPage() {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs"
+                    className="w-full px-3 py-2.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs min-h-[44px]"
                   >
                     <option value="active">Active</option>
                     <option value="rate_limited">Rate Limited</option>
@@ -358,13 +399,13 @@ export default function AdminApiManagementPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-[#f3f3f4] text-[#3f4947] font-mono-data rounded"
+                  className="px-4 py-2 bg-[#f3f3f4] text-[#3f4947] font-mono-data rounded min-h-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#0b4f4a] hover:bg-[#003733] text-white font-mono-data font-semibold rounded"
+                  className="px-4 py-2 bg-[#0b4f4a] hover:bg-[#003733] text-white font-mono-data font-semibold rounded min-h-[44px]"
                 >
                   Save Credential
                 </button>
@@ -382,5 +423,3 @@ function maskKey(keyStr) {
   if (keyStr.length <= 8) return '••••••••';
   return `${keyStr.slice(0, 7)}...****`;
 }
-
-

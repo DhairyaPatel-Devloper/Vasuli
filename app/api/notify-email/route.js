@@ -24,7 +24,7 @@ export async function POST(request) {
     }
 
     // Use customer email from DB if available, otherwise static fallback
-    const targetEmail = leak.customer_email || 'dhairyapatel0246@gmail.com';
+    const targetEmail = leak.customer_email || 'dhairyapayel0246@gmail.com';
 
     const customerName = leak.customer_name || 'Valued Customer';
     const amount = leak.amount || 0;
@@ -83,7 +83,7 @@ export async function POST(request) {
       leak_id: leakId,
       event_timestamp: new Date().toISOString(),
       event_type: 'notified',
-      detail: `Email sent to ${targetEmail} (Resend ID: ${emailId})`,
+      detail: `Email sent to ${leak.customer_email} (Resend ID: ${emailId})`,
       outcome: 'Email Delivered',
     }]);
 
@@ -91,7 +91,7 @@ export async function POST(request) {
       success: true,
       leakId,
       emailId,
-      sentTo: targetEmail,
+      sentTo: leak.customer_email,
     });
 
   } catch (error) {

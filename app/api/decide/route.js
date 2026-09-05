@@ -31,15 +31,15 @@ export async function POST(request) {
       'llm_reasoning',
       async (apiKey, cred) => {
         const client = new SarvamAIClient({ apiSubscriptionKey: apiKey });
+        const amountNum = Number(leak.amount) || 0;
         const prompt = `You are a recovery decision engine calculating Expected Value (EV) recovery score.
 Leak Metadata:
-- Amount: ${leak.currency || 'INR'} ${leak.amount || 0}
+- Amount: INR ${amountNum}
 - Root Cause: ${cause}
-- Source: ${leak.source || 'unknown'}
 
-Calculate EV score (integer 0 to 100) and choose the best recovery action: 'initiate_call' or 'send_email'.
-- Choose 'send_email' for soft declines, customer errors, or lower amounts (< 1000).
-- Choose 'initiate_call' for high urgency or high value payment failures.
+Decision Rules:
+- High amount (₹5,000+) or repeated bank decline failures: choose 'initiate_call' (EV score 85-95).
+- Lower amount (< ₹5,000) or customer-fixable error: choose 'send_email' (EV score 70-85).
 Respond ONLY in JSON:
 {"ev_score": number, "chosen_action": "initiate_call" | "send_email"}`;
 
@@ -49,11 +49,15 @@ Respond ONLY in JSON:
         });
 
         const rawContent = response.choices?.[0]?.message?.content || '';
-        let evScore = 80;
-        let chosenAction = 'initiate_call';
-        if (cause === 'bank_decline_soft') { evScore = 88; chosenAction = 'send_email'; }
-        if (cause === 'customer_error') { evScore = 80; chosenAction = 'send_email'; }
-        if (cause === 'technical_hard_decline') { evScore = 40; chosenAction = 'initiate_call'; }
+        let evScore = amountNum >= 5000 ? 92 : 78;
+        let chosenAction = amountNum >= 5000 ? 'initiate_call' : 'send_email';
+        if (cause === 'customer_error' && amountNum < 5000) {
+          evScore = 82;
+          chosenAction = 'send_email';
+        } else if (cause === 'bank_decline_soft' && amountNum >= 5000) {
+          evScore = 93;
+          chosenAction = 'initiate_call';
+        }
 
         try {
           const parsed = JSON.parse(rawContent.replace(/```json|```/g, '').trim());
@@ -63,7 +67,7 @@ Respond ONLY in JSON:
           if (['initiate_call', 'send_email'].includes(parsed.chosen_action)) {
             chosenAction = parsed.chosen_action;
           }
-        } catch (e) {}
+        } catch (e) { }
 
         return { evScore, chosenAction };
       },

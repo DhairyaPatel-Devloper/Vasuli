@@ -233,17 +233,17 @@ export default function OperatorQueuePage() {
 
       {/* Manual Override Action Modal */}
       {selectedLeak && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg border border-[#D8DEE2] w-full max-w-lg overflow-hidden shadow-2xl space-y-4">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-lg border border-[#D8DEE2] w-full sm:max-w-lg h-full sm:h-auto overflow-y-auto shadow-2xl flex flex-col justify-between">
             {/* Modal Header */}
             <div className="bg-[#0b4f4a] text-white px-6 py-4 flex items-center justify-between">
               <h3 className="font-headline font-bold text-base">Human Operator Override</h3>
-              <button onClick={() => setSelectedLeak(null)} className="text-[#84bfb8] hover:text-white">
+              <button onClick={() => setSelectedLeak(null)} className="text-[#84bfb8] hover:text-white p-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
+            <div className="p-6 space-y-4 text-xs flex-1">
               <div className="p-3 bg-[#f3f3f4] rounded border border-[#D8DEE2] font-mono-data space-y-1">
                 <div>Leak ID: <span className="font-bold text-[#0b4f4a]">{selectedLeak.id}</span></div>
                 <div>Amount: <span className="font-bold text-[#1a1c1c]">₹{selectedLeak.amount}</span></div>
@@ -270,7 +270,7 @@ export default function OperatorQueuePage() {
                 <select
                   value={customAction}
                   onChange={(e) => setCustomAction(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs text-[#1a1c1c]"
+                  className="w-full px-3 py-2.5 bg-[#f3f3f4] border border-[#D8DEE2] rounded font-mono-data text-xs text-[#1a1c1c] min-h-[44px]"
                 >
                   <option value="send_whatsapp_retry_link">Send WhatsApp Payment Link</option>
                   <option value="send_sms_payment_reminder">Send SMS Reminder (Sarvam AI)</option>
@@ -280,25 +280,25 @@ export default function OperatorQueuePage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-4 border-t border-[#D8DEE2] grid grid-cols-3 gap-2">
+              <div className="pt-4 border-t border-[#D8DEE2] grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   onClick={() => handleManualOverride('resolve')}
                   disabled={actionLoading}
-                  className="py-2.5 bg-[#4C7A63] hover:bg-[#395c4b] text-white font-mono-data text-xs rounded font-semibold transition-colors disabled:opacity-50"
+                  className="py-2.5 bg-[#4C7A63] hover:bg-[#395c4b] text-white font-mono-data text-xs rounded font-semibold transition-colors disabled:opacity-50 min-h-[44px]"
                 >
                   Mark Resolved
                 </button>
                 <button
                   onClick={() => handleManualOverride('trigger_action')}
                   disabled={actionLoading}
-                  className="py-2.5 bg-[#0b4f4a] hover:bg-[#003733] text-white font-mono-data text-xs rounded font-semibold transition-colors disabled:opacity-50"
+                  className="py-2.5 bg-[#0b4f4a] hover:bg-[#003733] text-white font-mono-data text-xs rounded font-semibold transition-colors disabled:opacity-50 min-h-[44px]"
                 >
                   Trigger Action
                 </button>
                 <button
                   onClick={() => handleManualOverride('write_off')}
                   disabled={actionLoading}
-                  className="py-2.5 bg-[#B23A2E] hover:bg-[#8f2f25] text-white font-mono-data text-xs rounded font-semibold transition-colors disabled:opacity-50"
+                  className="py-2.5 bg-[#B23A2E] hover:bg-[#8f2f25] text-white font-mono-data text-xs rounded font-semibold transition-colors disabled:opacity-50 min-h-[44px]"
                 >
                   Write Off
                 </button>
