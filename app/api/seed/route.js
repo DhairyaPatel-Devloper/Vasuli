@@ -41,6 +41,21 @@ export async function POST() {
     // ── 2. api_credentials ───────────────────────────────────────────────────
     // Valid category values (from schema CHECK constraint):
     //   'llm_reasoning' | 'email' | 'whatsapp' | 'voice_call' | 'payment_gateway'
+    // Exact required provider names:
+    //   LLM: provider_name = 'Sarvam AI Agent', category = 'llm_reasoning'
+    //   Voice: provider_name = 'Voice agent', category = 'voice_call'
+    
+    // Ensure any existing credentials match exact case-sensitive provider names
+    await supabase
+      .from('api_credentials')
+      .update({ provider_name: 'Sarvam AI Agent' })
+      .eq('category', 'llm_reasoning');
+
+    await supabase
+      .from('api_credentials')
+      .update({ provider_name: 'Voice agent' })
+      .eq('category', 'voice_call');
+
     const { data: existingCreds, error: credsReadError } = await supabase
       .from('api_credentials')
       .select('id')
@@ -52,12 +67,6 @@ export async function POST() {
         { status: 500 }
       );
     }
-
-    // Clean up any legacy credential provider names in DB
-    await supabase
-      .from('api_credentials')
-      .update({ provider_name: 'Sarvam AI Agent (+918064266222)' })
-      .ilike('provider_name', '%gemini%');
 
     if (!existingCreds || existingCreds.length === 0) {
       const sampleCredentials = [
@@ -72,34 +81,19 @@ export async function POST() {
         },
         {
           category: 'llm_reasoning',
-          provider_name: 'Sarvam AI Agent (Reasoning & Voice)',
+          provider_name: 'Sarvam AI Agent',
           account_email: 'agent@company.com',
-          encrypted_key: 'sarvam_placeholder',
-          priority: 1,
-          status: 'active',
-        },
-        {
-          category: 'email',
-          provider_name: 'Resend Email',
-          account_email: 'mail@company.com',
-          encrypted_key: 're_placeholder',
-          priority: 1,
-          status: 'active',
-        },
-        {
-          category: 'whatsapp',
-          provider_name: 'Sarvam AI Notifications (+918064266222)',
-          account_email: 'notifications@company.com',
-          encrypted_key: 'sarvam_placeholder',
+          encrypted_key: 'sarvam_llm_placeholder',
+          encrypted_secret: 'sarvam_secret_placeholder',
           priority: 1,
           status: 'active',
         },
         {
           category: 'voice_call',
-          provider_name: 'Sarvam AI Voice Agent (+918064266222)',
+          provider_name: 'Voice agent',
           account_email: 'agent@company.com',
-          encrypted_key: 'sarvam_placeholder',
-          encrypted_secret: 'sarvam_org_placeholder',
+          encrypted_key: 'sarvam_voice_placeholder',
+          encrypted_secret: 'sarvam_secret_placeholder',
           priority: 1,
           status: 'active',
         },
@@ -124,10 +118,6 @@ export async function POST() {
     }
 
     // ── 3. leaks ─────────────────────────────────────────────────────────────
-    // Valid source values (from schema CHECK constraint):
-    //   'payment_failed' | 'checkout_abandoned' | 'subscription_failed'
-    // Valid status values:
-    //   'open' | 'action_taken' | 'resolved' | 'escalated' | 'needs_manual_diagnosis' | 'written_off'
     const sampleLeaks = [
       {
         razorpay_payment_id: 'pay_seed001',
@@ -135,7 +125,8 @@ export async function POST() {
         currency: 'INR',
         source: 'payment_failed',
         customer_phone: '+919104898224',
-        customer_name: 'Dhairya Patel',
+        customer_name: 'Rahul Kumar',
+        gender: 'male',
         detected_at: new Date().toISOString(),
         root_cause: 'bank_decline_soft',
         ev_score: 88.0,
@@ -148,51 +139,13 @@ export async function POST() {
         currency: 'INR',
         source: 'subscription_failed',
         customer_phone: '+919104898224',
-        customer_name: 'Rahul Sharma',
+        customer_name: 'Priya Sharma',
+        gender: 'female',
         detected_at: new Date(Date.now() - 3_600_000).toISOString(),
         root_cause: 'customer_error',
         ev_score: 65.0,
         chosen_action: 'initiate_call',
         status: 'action_taken',
-      },
-      {
-        razorpay_payment_id: 'pay_seed003',
-        amount: 8500.0,
-        currency: 'INR',
-        source: 'checkout_abandoned',
-        customer_phone: '+919104898224',
-        customer_name: 'Ananya Verma',
-        detected_at: new Date(Date.now() - 7_200_000).toISOString(),
-        root_cause: 'technical_hard_decline',
-        ev_score: 30.0,
-        chosen_action: 'initiate_call',
-        status: 'needs_manual_diagnosis',
-      },
-      {
-        razorpay_payment_id: 'pay_seed004',
-        amount: 49999.0,
-        currency: 'INR',
-        source: 'payment_failed',
-        customer_phone: '+919104898224',
-        customer_name: 'Vikram Singh',
-        detected_at: new Date(Date.now() - 14_400_000).toISOString(),
-        root_cause: 'bank_decline_soft',
-        ev_score: 92.0,
-        chosen_action: 'initiate_call',
-        status: 'open',
-      },
-      {
-        razorpay_payment_id: 'pay_seed005',
-        amount: 5999.0,
-        currency: 'INR',
-        source: 'checkout_abandoned',
-        customer_phone: '+919104898224',
-        customer_name: 'Pooja Iyer',
-        detected_at: new Date(Date.now() - 21_600_000).toISOString(),
-        root_cause: 'bank_decline_soft',
-        ev_score: 72.0,
-        chosen_action: 'initiate_call',
-        status: 'escalated',
       },
     ];
 
@@ -209,9 +162,6 @@ export async function POST() {
     }
 
     // ── 4. audit_log ─────────────────────────────────────────────────────────
-    // Valid event_type values (from schema CHECK constraint):
-    //   'detected' | 'diagnosed' | 'policy_check' | 'action_taken'
-    //   | 'resolved' | 'escalated' | 'human_override' | 'written_off'
     if (insertedLeaks && insertedLeaks.length > 0) {
       const auditEntries = insertedLeaks.map((l) => ({
         leak_id: l.id,
@@ -221,19 +171,12 @@ export async function POST() {
         outcome: `Status set to: ${l.status}`,
       }));
 
-      const { error: auditInsertError } = await supabase
-        .from('audit_log')
-        .insert(auditEntries);
-
-      if (auditInsertError) {
-        // Non-fatal — leaks were inserted OK
-        console.warn('[seed] audit_log insert error:', auditInsertError.message);
-      }
+      await supabase.from('audit_log').insert(auditEntries);
     }
 
     return NextResponse.json({
       success: true,
-      message: `Database seeded successfully! ${insertedLeaks?.length ?? 0} payment leaks and audit events inserted.`,
+      message: `Database seeded successfully with exact Sarvam AI credentials and test leaks.`,
       count: insertedLeaks?.length ?? 0,
     });
   } catch (error) {

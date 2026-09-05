@@ -19,9 +19,14 @@ export async function POST(request) {
     if (eventType.includes('checkout')) dbSource = 'checkout_abandoned';
     if (eventType.includes('subscription')) dbSource = 'subscription_failed';
 
-    // Target Phone: strictly default to +919104898224
-    const customerPhone = payload.contact || body.contact || payload.phone || '+919104898224';
-    const customerName = payload.notes?.customer_name || payload.email?.split('@')[0] || 'Valued Customer';
+    // Extract customer phone from Razorpay payload
+    let rawContact = payload.contact || body.contact || payload.phone || payload.notes?.phone || payload.notes?.customer_phone || '';
+    let customerPhone = rawContact ? String(rawContact).trim() : null;
+    if (customerPhone && !customerPhone.startsWith('+')) {
+      customerPhone = customerPhone.startsWith('91') ? `+${customerPhone}` : `+91${customerPhone}`;
+    }
+
+    const customerName = payload.notes?.customer_name || payload.notes?.name || payload.email?.split('@')[0] || 'Valued Customer';
     const gender = payload.notes?.gender || 'male';
 
     const supabase = getSupabaseServerClient();
@@ -36,6 +41,7 @@ export async function POST(request) {
           currency,
           customer_phone: customerPhone,
           customer_name: customerName,
+          gender,
           source: dbSource,
           detected_at: new Date().toISOString(),
           status: 'open',
@@ -57,7 +63,7 @@ export async function POST(request) {
         leak_id: leak.id,
         event_timestamp: new Date().toISOString(),
         event_type: 'detected',
-        detail: `Razorpay failure ingested: Payment ${razorpayPaymentId}, Amount: ₹${amount}, Target Mobile: ${customerPhone}, Action: initiate_call`,
+        detail: `Razorpay failure ingested: Payment ${razorpayPaymentId}, Amount: ₹${amount}, Customer: ${customerName} (${customerPhone || 'Phone pending'}), Action: initiate_call`,
         outcome: 'Status set to open',
       },
     ]);

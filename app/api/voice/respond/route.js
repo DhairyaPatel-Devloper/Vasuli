@@ -100,7 +100,7 @@ export async function POST(request) {
         {
           leak_id: leakId || null,
           call_id: callId,
-          agent_name: process.env.SARVAM_AGENT_NAME || 'Conversatio-7a28a6dd-fdfe',
+          agent_name: 'Vasuli - Razorpay Payment Recovery',
           user_transcript: transcript || null,
           sarvam_reply: agentReply,
           cleaned_reply: cleanedReply,

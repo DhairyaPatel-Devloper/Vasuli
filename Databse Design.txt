@@ -42,6 +42,9 @@ create table public.leaks (
   razorpay_payment_id text,
   amount numeric(12,2) not null,
   currency text not null default 'INR',
+  customer_name text,
+  gender text,
+  customer_phone text,
   source text not null check (source in ('payment_failed', 'checkout_abandoned', 'subscription_failed')),
   detected_at timestamptz not null default now(),
   root_cause text check (root_cause in ('bank_decline_soft', 'technical_hard_decline', 'customer_error', 'unknown')),
@@ -175,13 +178,13 @@ create table public.system_prompts (
 -- ============================================================
 -- TABLE 7: conversation_history
 -- Stores every turn of a multi-turn conversation (call or chat),
--- so Gemini always receives full context instead of restarting cold each turn.
+-- so the recovery engine always receives full context instead of restarting cold each turn.
 -- ============================================================
 create table public.conversation_history (
   id uuid primary key default gen_random_uuid(),
   leak_id uuid references public.leaks(id) on delete cascade,
   channel text not null check (channel in ('call', 'whatsapp', 'email')),
-  external_thread_id text not null, -- e.g. Twilio's CallSid — the natural session key for one call
+  external_thread_id text not null, -- e.g. Sarvam call session id — the natural session key for one call
   turn_number integer not null,
   role text not null check (role in ('assistant', 'customer')),
   message_text text not null,

@@ -3,6 +3,7 @@
 
 import { NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { executeWithCredential } from '@/lib/credential-resolver';
 
 export async function POST(request) {
   try {
@@ -24,155 +25,191 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Leak not found' }, { status: 404 });
     }
 
-    // 2. Prepare Dynamic Variables
-    const amountVal = String(leak.amount || 23424);
-    const customerNameVal = leak.customer_name || 'Valued Customer';
-    const genderVal = leak.gender || 'male';
-    const razorpayPaymentIdVal = leak.razorpay_payment_id || 'pay_TY3SLASJlOhaHi';
+    let customerPhone = (leak.customer_phone || '').trim();
+    let customerNameVal = leak.customer_name || '';
 
-    let customerPhone = leak.customer_phone || '+919104898224';
+    // 2. If phone is missing, automatically fetch from Razorpay API using payment_id
+    if (!customerPhone && leak.razorpay_payment_id && !leak.razorpay_payment_id.startsWith('pay_seed') && !leak.razorpay_payment_id.startsWith('pay_test')) {
+      try {
+        const { data: rzpCreds } = await supabase
+          .from('api_credentials')
+          .select('*')
+          .eq('category', 'payment_gateway')
+          .eq('status', 'active')
+          .order('priority', { ascending: true })
+          .limit(1);
+
+        if (rzpCreds && rzpCreds.length > 0) {
+          const rzpKey = rzpCreds[0].encrypted_key;
+          const rzpSecret = rzpCreds[0].encrypted_secret;
+          const authHeader = 'Basic ' + Buffer.from(`${rzpKey}:${rzpSecret}`).toString('base64');
+          
+          console.log(`[act] Fetching customer contact from Razorpay API for ${leak.razorpay_payment_id}...`);
+          const rzpRes = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(leak.razorpay_payment_id)}`, {
+            headers: { Authorization: authHeader },
+          });
+
+          if (rzpRes.ok) {
+            const paymentData = await rzpRes.json();
+            if (paymentData.contact) {
+              customerPhone = paymentData.contact.trim();
+              customerNameVal = paymentData.notes?.customer_name || paymentData.email?.split('@')[0] || customerNameVal;
+              
+              // Persist fetched phone & name to Supabase leaks table
+              await supabase
+                .from('leaks')
+                .update({
+                  customer_phone: customerPhone,
+                  customer_name: customerNameVal || 'Valued Customer',
+                })
+                .eq('id', leakId);
+              
+              console.log(`[act] Successfully retrieved phone from Razorpay: ${customerPhone}`);
+            }
+          }
+        }
+      } catch (rzpErr) {
+        console.warn('[act] Error fetching payment details from Razorpay API:', rzpErr.message);
+      }
+    }
+
+    // 3. Fallback phone validation
+    if (!customerPhone) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `customer_phone is missing for leak ${leakId}. Please provide a valid phone number on the leak record or ensure Razorpay webhook includes customer contact.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Format phone number to E.164 format
     if (!customerPhone.startsWith('+')) {
       customerPhone = customerPhone.startsWith('91') ? `+${customerPhone}` : `+91${customerPhone}`;
     }
 
-    // Sarvam API credentials & path parameters from environment
-    const sarvamApiKey = process.env.SARVAM_API_KEY || '';
-    const appId = process.env.SARVAM_APP_ID || 'Conversatio-7a28a6dd-fdfe';
-    const orgId = process.env.SARVAM_ORG_ID || '019e9120-ca5d-7d10-9e64-c87d2c557710';
-    const workspaceId = process.env.SARVAM_WORKSPACE_ID || '01a06d1b-cb57-725d-b9a2-78a4cab1d757';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const callbackUrl = `${baseUrl}/api/voice/callback`;
+    customerNameVal = customerNameVal || leak.customer_name || 'Valued Customer';
+    const amountVal = String(leak.amount || 0);
+    const genderVal = leak.gender || 'male';
+    const razorpayPaymentIdVal = leak.razorpay_payment_id || '';
 
-    // Build standard Sarvam Voice Agent payload with agent_variables
-    const outboundPayload = {
-      phone_number: customerPhone,
-      customer_phone_number: customerPhone,
-      user_phone_number: customerPhone,
-      agent_id: appId,
-      app_id: appId,
-      agent_variables: {
-        amount: amountVal,
-        customer_name: customerNameVal,
-        gender: genderVal,
-        razorpay_payment_id: razorpayPaymentIdVal,
-      },
+    // 4. Clean Sarvam Outbound payload (matches Sarvam SDK / dashboard exactly)
+    // app_id & app_version from: https://indus.sarvam.ai/samvaad/deploy/with-code/recipes/sdk
+    const outboundBody = {
       app_config: {
-        app_id: appId,
-        app_version: 1,
+        app_id: 'Conversatio-7a28a6dd-fdfe',
+        app_version: 2,
+        connection_config: {
+          connection_id: '990fc074-bc-251fbebb-5c6e',
+          agent_phone_number: '+918064266222'
+        },
+        agent_variables: {
+          customer_name: customerNameVal,
+          amount: amountVal,
+          gender: genderVal,
+          razorpay_payment_id: razorpayPaymentIdVal
+        }
       },
       user_config: {
-        user_phone_number: customerPhone,
-        amount: amountVal,
-        customer_name: customerNameVal,
-        gender: genderVal,
-        razorpay_payment_id: razorpayPaymentIdVal,
+        user_phone_number: customerPhone
       },
+      webhook_config: {
+        url: callbackUrl,
+        metadata: { leak_id: leak.id }
+      }
     };
 
-    let dispatchSuccess = false;
-    let callId = null;
-    let dispatchEndpoint = '';
-    let errorDetail = '';
+    // 5. Dispatch voice call using credential-resolver (category = 'voice_call', provider_name = 'Voice agent')
+    const credentialResult = await executeWithCredential(
+      'voice_call',
+      async (apiKey, cred) => {
+        // Explicit check for API Key existence
+        if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
+          console.error('[act] CRITICAL: Voice API Key is NULL or EMPTY in api_credentials table for provider:', cred?.provider_name);
+          throw new Error(`Voice API Key is missing or null in api_credentials for provider: ${cred?.provider_name || 'Voice agent'}`);
+        } else {
+          console.log('[act] Voice API key resolved successfully. Provider:', cred.provider_name, '| Prefix:', apiKey.substring(0, 8) + '...');
+        }
 
-    // Candidate API endpoints for Sarvam Voice Outbounds across indus.sarvam.ai & apps.sarvam.ai
-    const endpointsToTry = [];
-    if (orgId) {
-      const ws = workspaceId || 'default';
-      endpointsToTry.push(
-        `https://apps.sarvam.ai/api/outbounds/v1/orgs/${encodeURIComponent(orgId)}/workspaces/${encodeURIComponent(ws)}/outbounds`,
-        `https://apps.sarvam.ai/api/outbounds/v1/orgs/${encodeURIComponent(orgId)}/workspaces/${encodeURIComponent(ws)}/instant-call`,
-        `https://apps.sarvam.ai/api/outbounds/v1/orgs/${encodeURIComponent(orgId)}/workspaces/default/outbounds`,
-        `https://indus.sarvam.ai/api/outbounds/v1/orgs/${encodeURIComponent(orgId)}/workspaces/${encodeURIComponent(ws)}/outbounds`,
-        `https://indus.sarvam.ai/samvaad/api/v1/orgs/${encodeURIComponent(orgId)}/outbound`
-      );
-    }
-    endpointsToTry.push(
-      'https://indus.sarvam.ai/api/v1/outbounds',
-      'https://indus.sarvam.ai/samvaad/api/v1/outbound',
-      'https://api.sarvam.ai/v1/conversations/outbound',
-      'https://api.sarvam.ai/v1/voice/agent/outbound',
-      'https://apps.sarvam.ai/api/outbounds/v1/outbounds',
-      'https://api.sarvam.ai/v1/voice/outbound-call'
+        console.log('[act] Outbound body:', JSON.stringify(outboundBody, null, 2));
+
+        const response = await fetch(
+          'https://apps.sarvam.ai/api/outbounds/v1/orgs/019e9120-ca5d-7d10-9e64-c87d2c557710/workspaces/01a06d1b-cb57-725d-b9a2-78a4cab1d757/outbounds',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': apiKey
+            },
+            body: JSON.stringify(outboundBody)
+          }
+        );
+
+        const status = response.status;
+        const resText = await response.text();
+
+        if (!response.ok) {
+          throw new Error(`Sarvam Voice API returned HTTP ${status}: ${resText}`);
+        }
+
+        let resData = {};
+        try {
+          resData = JSON.parse(resText);
+        } catch (e) {}
+
+        return {
+          callId: resData.call_id || resData.id || resData.outbound_id || `sarvam_${Date.now()}`,
+          rawResponse: resData,
+        };
+      },
+      leakId,
+      'Voice agent'
     );
 
-    console.log(`[act] Dispatching call to ${customerPhone} via Sarvam Agent ${appId}...`);
-
-    for (const endpoint of endpointsToTry) {
-      try {
-        console.log(`[act] Fetching Sarvam API: ${endpoint}`);
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'api-subscription-key': sarvamApiKey,
-            'X-API-Key': sarvamApiKey,
-          },
-          body: JSON.stringify(outboundPayload),
-        });
-
-        const status = res.status;
-        const resText = await res.text();
-        console.log(`[act] Sarvam ${endpoint} -> HTTP ${status}: ${resText.substring(0, 200)}`);
-
-        if (res.ok) {
-          let data = {};
-          try { data = JSON.parse(resText); } catch (e) {}
-          dispatchSuccess = true;
-          callId = data.id || data.call_id || data.outbound_id || `sarvam_${Date.now()}`;
-          dispatchEndpoint = endpoint;
-          break;
-        } else {
-          errorDetail = `HTTP ${status} from ${endpoint}: ${resText.substring(0, 150)}`;
-        }
-      } catch (err) {
-        console.warn(`[act] Fetch error for ${endpoint}:`, err.message);
-        errorDetail = err.message;
-      }
+    if (!credentialResult.success) {
+      return NextResponse.json(
+        { success: false, error: credentialResult.error, escalated: credentialResult.escalated },
+        { status: credentialResult.escalated ? 200 : 500 }
+      );
     }
 
-    let outcomeMessage = '';
-    if (dispatchSuccess) {
-      outcomeMessage = `Call Dispatched via Sarvam AI (${appId} -> ${customerPhone}). Call ID: ${callId}. Variables: amount=₹${amountVal}, customer_name=${customerNameVal}, gender=${genderVal}, razorpay_payment_id=${razorpayPaymentIdVal}.`;
-    } else {
-      if (!orgId || !workspaceId) {
-        outcomeMessage = `Sarvam API Call Pending: SARVAM_ORG_ID and SARVAM_WORKSPACE_ID are missing in .env.local. (Sarvam requires org_id & workspace_id in URL path: apps.sarvam.ai/api/outbounds/v1/orgs/ORG_ID/workspaces/WORKSPACE_ID/outbounds). Details: ${errorDetail}`;
-      } else {
-        outcomeMessage = `Sarvam API returned error: ${errorDetail}`;
-      }
-    }
+    const { callId } = credentialResult.data;
+    const outcomeMessage = `Sarvam Outbound Call Dispatched to ${customerPhone} (Call ID: ${callId}). Agent: +918064266222. Callback: ${callbackUrl}`;
 
-    // 3. Update leak status to action_taken
+    // 6. Update leak status to action_taken
     await supabase
       .from('leaks')
       .update({
-        status: dispatchSuccess ? 'action_taken' : 'needs_manual_diagnosis',
+        status: 'action_taken',
         chosen_action: 'initiate_call',
+        customer_phone: customerPhone,
       })
       .eq('id', leakId);
 
-    // 4. Record audit event
+    // 7. Record audit event
     await supabase.from('audit_log').insert([
       {
         leak_id: leakId,
         event_timestamp: new Date().toISOString(),
         event_type: 'acted',
         detail: outcomeMessage,
-        outcome: dispatchSuccess ? 'Call Dispatched to Telephony' : 'Call Failed / Org ID Required',
+        outcome: 'Call Dispatched to Telephony',
       },
     ]);
 
     return NextResponse.json({
-      success: dispatchSuccess,
+      success: true,
       leakId,
       chosenAction: 'initiate_call',
-      dispatched: dispatchSuccess,
+      dispatched: true,
+      customerPhone,
       callId,
       message: outcomeMessage,
-      error: dispatchSuccess ? null : errorDetail,
-      variables: {
-        amount: amountVal,
-        customer_name: customerNameVal,
-        gender: genderVal,
-        razorpay_payment_id: razorpayPaymentIdVal,
-      },
+      requestBody: outboundBody,
+      provider: credentialResult.provider,
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
